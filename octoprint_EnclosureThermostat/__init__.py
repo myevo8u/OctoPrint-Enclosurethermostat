@@ -184,11 +184,26 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.showmode = self._settings.get(["showmode"])
         self.showstatus = self._settings.get(["showstatus"])
         self.showtargettemp = self._settings.get(["showtargettemp"])
+        self.stopprintaftercancel = self._settings.get(["stopprintaftercancel"])
+        self.stopprintafterfinish = self._settings.get(["stopprintafterfinish"])
+        self.stopprintaftererror = self._settings.get(["stopprintaftererror"])
         self.start_serialconnectioncheck_timer(30)
         
     def stop_tempcheck_timer(self):
         self._checkTempTimer.cancel
         
+    def on_event(self, event, payload):
+        if event == 'PrintFailed':
+            if self.stopprintaftererror:
+                mythermostatoff()
+        if event == 'PrintDone':
+            if self.stopprintaftererror:
+                mythermostatoff()
+        if event == 'PrintCancelled':
+            if self.stopprintaftererror:
+                mythermostatoff()
+
+            
     def get_enclosure_temp(self):
         if (self.RequestCommandProcess == False):
             self.RequestCommandProcess = True
@@ -316,7 +331,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             return []
             
     def get_settings_defaults(self):
-        return dict(comport="/dev/Temp_Controller", baudrate="9600", showenclosuretemp=True, showmode=True, showstatus=True, showtargettemp=True)
+        return dict(comport="/dev/Temp_Controller", baudrate="9600", showenclosuretemp=True, showmode=True, showstatus=True, showtargettemp=True, stopprintaftercancel=True, stopprintafterfinish=True, stopprintaftererror=True)
         
  
     def get_assets(self):

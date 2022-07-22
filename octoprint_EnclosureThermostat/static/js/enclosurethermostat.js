@@ -142,13 +142,10 @@ $(function() {
 				self.EnclosureStatus = String(data.enclosureStatus)
 				if (self.EnclosureStatus == "Cooling") {
 					$("#EnclosureStatusValue").attr('class', 'cooling');
-					console.log("cooling");
 				} else if (self.EnclosureStatus == "Heating") {
 					$("#EnclosureStatusValue").attr('class', 'heating');
-					console.log("heating");
 				} else  {
 					$("#EnclosureStatusValue").attr('class', 'regular');
-					console.log("regular");
 				}
 			}
         }

@@ -1,31 +1,66 @@
-<h4>Configuration for Enclosure Thermostat</h4>
+<h3>Configuration for Enclosure Thermostat</h3>
 
 <form class="form-horizontal">
     <div class="control-group">
-        <label class="control-label">{{ _('Com Port:') }}</label>
-        <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.comport">
-        </div>
-		<label class="control-label">{{ _('Baud Rate:') }}</label>
-        <div class="controls">
-            <input type="text" class="input-block-level" data-bind="value: settings.baudrate">
-        </div>
-		<label class="control-label">{{ _('Enclosure Temp - Nav Bar:') }}</label>
-        <div class="controls">
-            <input type="checkbox" class="input-block-level" data-bind="checked: settings.showenclosuretemp">
-        </div>
-		<label class="control-label">{{ _('Enclosure Target Temp - Nav Bar:') }}</label>
-        <div class="controls">
-            <input type="checkbox" class="input-block-level" data-bind="checked: settings.showtargettemp">
-        </div>
-		<label class="control-label">{{ _('Mode - Nav Bar:') }}</label>
-        <div class="controls">
-            <input type="checkbox" class="input-block-level" data-bind="checked: settings.showmode">
-        </div>
-		<label class="control-label">{{ _('System Status - Nav Bar:') }}</label>
-        <div class="controls">
-            <input type="checkbox" class="input-block-level" data-bind="checked: settings.showstatus">
-        </div>
-
+		<div>
+			<h4> Connection Settings </h4>
+			<div >
+				<label >{{ _('Com Port:') }}</label>
+				<input type="text"  data-bind="value: settings.comport">
+			</div>
+			<div >
+				<label >{{ _('Baud Rate:') }}</label>
+				<input type="text"  data-bind="value: settings.baudrate">
+			</div>
+		</div>
+		<br>
+		<div>
+			<h4> NavBar Settings </h4>
+			<div >
+				<label >{{ _('Enclosure Temp - Nav Bar:') }}
+				<input type="checkbox"  data-bind="checked: settings.showenclosuretemp">
+				</label>
+			</div>
+			<br>
+			<div >
+				<label >{{ _('Enclosure Target Temp - Nav Bar:') }}
+				<input type="checkbox"  data-bind="checked: settings.showtargettemp">
+				</label>
+			</div>
+			<br>
+			<div >
+				<label >{{ _('Mode - Nav Bar:') }}
+				<input type="checkbox"  data-bind="checked: settings.showmode">
+				</label>
+			</div>
+			<br>
+			<div >
+				<label >{{ _('System Status - Nav Bar:') }}
+				<input type="checkbox"  data-bind="checked: settings.showstatus">
+				</label>
+			</div>
+		</div>
+		<br>
+		<div>
+			<h4> Event Handling Settings </h4>
+			<div >
+				<label > Stop Thermostat after Print Cancel: 
+				<input type="checkbox"  data-bind="checked: settings.stopprintaftercancel">
+				</label>
+			</div>
+			<br>
+			<div >
+				<label >{{ _('Stop Thermostat after Print Failure:') }}
+				<input type="checkbox"  data-bind="checked: settings.stopprintaftererror">
+				</label>
+			</div>
+			<br>
+			<div >
+				<label >{{ _('Stop Thermostat after Print Failure:') }}
+				<input type="checkbox"  data-bind="checked: settings.stopprintafterfinish">
+				</label>
+			</div>
+		</div>
     </div>
 </form>
+
