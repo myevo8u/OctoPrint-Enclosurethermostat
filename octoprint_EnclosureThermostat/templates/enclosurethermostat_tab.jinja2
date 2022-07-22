@@ -1,0 +1,31 @@
+<script src="{{ url_for("static", filename="js/lib/jquery/jquery.min.js") }}"></script>
+<div>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<div id="graph" style="width:600px;height:500px;"></div>
+</div>
+
+<div>
+<select name="Filament_Type" id="FilamentType" class="inputselect">
+    <option value="0" selected>PLA</option>
+    <option value="1">PETG</option>
+    <option value="2">ABS</option>
+    <option value="3">PA</option>
+	<option value="4">TPU</option>
+</select>
+<button class="buttonon" data-bind="click: thermostatfilmode">Filament Mode</button>
+</div>
+<br>
+<div>
+<input type="number" id="mantempval" name="ManualTemp" class="inputtext">
+<button class="buttonon" data-bind="click: thermostatmantemp">Manual Temp Mode</button>
+</div>
+<br>
+<div>
+<input type="number" id="manpwmval" name="ManualPWM" class="inputtext">
+<button class="buttonon" data-bind="click: thermostatmanpwm">Manual Fan Mode</button>
+<br>
+<div>
+<br>
+<button class="buttonoff" data-bind="click: thermostatoff">Turn Off</button>
+</div>
+</div>

@@ -1,0 +1,4 @@
+include README.md
+recursive-include octoprint_EnclosureThermostat/templates *
+recursive-include octoprint_EnclosureThermostat/translations *
+recursive-include octoprint_EnclosureThermostat/static *

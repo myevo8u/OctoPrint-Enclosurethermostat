@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: OctoPrint-Enclosurethermostat
+Version: 1.0.0
+Summary: TODO
+Home-page: https://github.com/myevo8u/OctoPrint-Enclosurethermostat
+Author: Kevin Pidliskey
+Author-email: kevinp@siteapplet.com
+License: AGPLv3
+Requires-Python: >=3,<4

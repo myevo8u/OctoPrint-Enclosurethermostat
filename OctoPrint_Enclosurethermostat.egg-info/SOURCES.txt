@@ -1,0 +1,17 @@
+MANIFEST.in
+README.md
+setup.cfg
+setup.py
+OctoPrint_Enclosurethermostat.egg-info/PKG-INFO
+OctoPrint_Enclosurethermostat.egg-info/SOURCES.txt
+OctoPrint_Enclosurethermostat.egg-info/dependency_links.txt
+OctoPrint_Enclosurethermostat.egg-info/entry_points.txt
+OctoPrint_Enclosurethermostat.egg-info/not-zip-safe
+OctoPrint_Enclosurethermostat.egg-info/requires.txt
+OctoPrint_Enclosurethermostat.egg-info/top_level.txt
+octoprint_EnclosureThermostat/__init__.py
+octoprint_EnclosureThermostat/static/css/enclosurethermostat.css
+octoprint_EnclosureThermostat/static/js/enclosurethermostat.js
+octoprint_EnclosureThermostat/templates/enclosurethermostat_navbar.jinja2
+octoprint_EnclosureThermostat/templates/enclosurethermostat_settings.jinja2
+octoprint_EnclosureThermostat/templates/enclosurethermostat_tab.jinja2
