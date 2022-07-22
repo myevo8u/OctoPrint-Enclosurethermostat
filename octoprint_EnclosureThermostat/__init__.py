@@ -12,7 +12,8 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                 octoprint.plugin.TemplatePlugin,
                                 octoprint.plugin.AssetPlugin,
                                 octoprint.plugin.SettingsPlugin,
-                                octoprint.plugin.BlueprintPlugin):
+                                octoprint.plugin.BlueprintPlugin,
+                                octoprint.plugin.EventHandlerPlugin):
                                 
     def __init__(self):
         self._checkTempTimer = None
