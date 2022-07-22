@@ -5,6 +5,7 @@ import os
 import serial as s
 import time
 from flask import jsonify, request, make_response, Response
+from octoprint.events import Events
 
 
 #Call all Plugins
@@ -211,13 +212,13 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self._checkTempTimer.cancel
         
     def on_event(self, event, payload):
-        if event == 'PrintFailed':
+        if event == Events.PRINT_FAILED:
             if self.stopprintaftererror:
                 turnoff()
-        if event == 'PrintDone':
+        if event == Events.PRINT_DONE:
             if self.stopprintaftererror:
                 turnoff()
-        if event == 'PrintCancelled':
+        if event == Events.PRINT_CANCELLED:
             if self.stopprintaftererror:
                 turnoff()
 
