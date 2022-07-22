@@ -1,5 +1,6 @@
 <script src="{{ url_for("static", filename="js/lib/jquery/jquery.min.js") }}"></script>
 <div class="navbar-text">
+&nbsp;&nbsp;
 <span id="CurrentModeText" data-bind="visible: settings.showmode">Mode:</span>
 <span id="CurrentModeValue" data-bind="html: CurMode, visible: settings.showmode"></span>
 <span id="EnclosureStatusText" data-bind="visible: settings.showstatus">Status:</span>
@@ -8,4 +9,5 @@
 <span id="EnclosureTempValue" data-bind="html: EnclTemp, visible: settings.showenclosuretemp"></span>
 <span id="EnclosureTargetTempText" data-bind="visible: (TargetTempVis() && settings.showtargettemp)"> -> </span>
 <span id="EnclosureTargetTempValue" data-bind="html: TargetTempVal, visible: (TargetTempVis() && settings.showtargettemp)"></span>
+&nbsp;&nbsp;
 </div>
