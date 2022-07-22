@@ -280,6 +280,28 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self._logger.info("Getting Enclosure Target..")
         self._plugin_manager.send_plugin_message(self._identifier,
                                                 dict(enclosureMode='Enclosure Target: ' + str(self.target)))
+                                                
+    ##~~ Softwareupdate hook
+
+    def get_update_information(self):
+        # Define the configuration for your plugin to use with the Software Update
+        # Plugin here. See https://github.com/foosel/OctoPrint/wiki/Plugin:-Software-Update
+        # for details.
+        return dict(
+            Enclosurethermostat=dict(
+                displayName="OctoPrint-Enclosurethermostat",
+                displayVersion=self._plugin_version,
+
+                # version check: github repository
+                type="github_release",
+                user="myevo8u",
+                repo="OctoPrint-Enclosurethermostat",
+                current=self._plugin_version,
+
+                # update method: pip
+                pip="https://github.com/myevo8u/OctoPrint-Enclosurethermostat/archive/{target_version}.zip"
+            )
+        )                                            
  
     def get_template_configs(self):
         try:
@@ -303,4 +325,12 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
 
 __plugin_name__ = "Enclosurethermostat"
 __plugin_pythoncompat__ = ">=3.7,<4"
-__plugin_implementation__ = EnclosurethermostatPlugin()
+
+def __plugin_load__():
+    global __plugin_implementation__
+    __plugin_implementation__ = EnclosurethermostatPlugin()
+
+    global __plugin_hooks__
+    __plugin_hooks__ = {
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+    }
