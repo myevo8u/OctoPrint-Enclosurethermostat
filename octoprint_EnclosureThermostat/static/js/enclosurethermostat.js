@@ -21,10 +21,15 @@ $(function() {
 			$.ajax({
 				type: "GET",
 				dataType: "json",
-				url: self.buildPluginUrl("/thermostatoff")
-	//        		success: function (data) {
-	//          			self.getUpdateUI();
-	//        		}
+				url: self.buildPluginUrl("/thermostatoff"),
+				success: function(data) {
+					new PNotify({
+							title: "Thermostat Off",
+							text: "",
+							type: "success",
+							hide: true
+						});
+					}
 			});
 		};
 		self.thermostatfilmode = function() {
@@ -35,10 +40,15 @@ $(function() {
 				type: "GET",
 				dataType: "json",
 				data: request,
-				url: self.buildPluginUrl("/thermostatfilament")
-	//        		success: function (data) {
-	//          			self.getUpdateUI();
-	//        		}
+				url: self.buildPluginUrl("/thermostatfilament"),
+				success: function(data) {
+					new PNotify({
+							title: "Thermostat Update",
+							text: "Filament Mode",
+							type: "success",
+							hide: true
+						});
+					}
 			});
 		};
 
@@ -54,10 +64,15 @@ $(function() {
 							type: "GET",
 							dataType: "json",
 							data: request,
-							url: self.buildPluginUrl("/thermostatmantemp")
-				//        		success: function (data) {
-				//          			self.getUpdateUI();
-				//        		}
+							url: self.buildPluginUrl("/thermostatmantemp"),
+							success: function(data) {
+								new PNotify({
+										title: "Thermostat Update",
+										text: "Manual Temp Mode",
+										type: "success",
+										hide: true
+									});
+								}
 						});
 				}
 			}
@@ -78,10 +93,15 @@ $(function() {
 							type: "GET",
 							dataType: "json",
 							data: request,
-							url: self.buildPluginUrl("/thermostatmanpwm")
-				//        		success: function (data) {
-				//          			self.getUpdateUI();
-				//        		}
+							url: self.buildPluginUrl("/thermostatmanpwm"),
+							success: function(data) {
+								new PNotify({
+										title: "Thermostat Update",
+										text: "PWM Mode",
+										type: "success",
+										hide: true
+									});
+								}
 						});
 				}
 			}
@@ -93,6 +113,14 @@ $(function() {
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 			if (plugin != "EnclosureThermostat") {
 				return;
+			}
+			if(data.type == "popup") {
+				new PNotify({
+					title: data.title,
+					text: data.msg,
+					type: data.alertype,
+					hide: true
+					});
 			}
 			if (data.enclosureTemp){
 				self.EnclTemp(data.enclosureTemp)

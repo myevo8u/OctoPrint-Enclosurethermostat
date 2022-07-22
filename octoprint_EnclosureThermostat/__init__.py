@@ -43,9 +43,11 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             time.sleep(1)
             self.start_tempcheck_timer(5)
             self.serialconnected = True
+            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Connected", msg="", alertype="success"))
         except Exception as e:
             self.serialconnected = False
-            self._logger.error("Enclosure Thermostat Connection Failed: %" % (e))
+            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Error", msg="Could not Connect to Thermostat", alertype="error"))
+            self._logger.error("Enclosure Thermostat Connection Failed: %s" % (e))
             self.stop_tempcheck_timer()
     
     ##~~ Blueprint Reader
@@ -182,7 +184,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.showmode = self._settings.get(["showmode"])
         self.showstatus = self._settings.get(["showstatus"])
         self.showtargettemp = self._settings.get(["showtargettemp"])
-        self.start_serialconnectioncheck_timer(10)
+        self.start_serialconnectioncheck_timer(30)
         
     def stop_tempcheck_timer(self):
         self._checkTempTimer.cancel
