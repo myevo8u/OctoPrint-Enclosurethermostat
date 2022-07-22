@@ -166,6 +166,23 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 self.RequestCommandProcess = False
                 return jsonify(success=False)
         
+    def turnoff(self):
+        try:
+            if self.serialconnected:
+                command = "<M0>"
+                self.arduino.write(command.encode('utf-8'))
+                time.sleep(0.1)
+                response = self.arduino.readline().decode().strip()
+                self.arduino.flush()
+                self._logger.info(self.temp)
+                self.RequestCommandProcess = False
+            self.RequestCommandProcess = False
+      
+        except:
+            self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
+            self.RequestCommandProcess = False
+
+    
     def get_serialconnectcheck(self):
         try:
             self.arduino.inWaiting()
@@ -196,13 +213,13 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def on_event(self, event, payload):
         if event == 'PrintFailed':
             if self.stopprintaftererror:
-                mythermostatoff()
+                turnoff()
         if event == 'PrintDone':
             if self.stopprintaftererror:
-                mythermostatoff()
+                turnoff()
         if event == 'PrintCancelled':
             if self.stopprintaftererror:
-                mythermostatoff()
+                turnoff()
 
             
     def get_enclosure_temp(self):
