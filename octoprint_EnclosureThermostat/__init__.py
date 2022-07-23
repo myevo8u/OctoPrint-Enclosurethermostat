@@ -177,11 +177,13 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 self.arduino.flush()
                 self._logger.info(self.temp)
                 self.RequestCommandProcess = False
+                self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Turned Off", msg="Printing Stopped", alertype="success"))
             self.RequestCommandProcess = False
       
         except:
             self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
             self.RequestCommandProcess = False
+            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Error", msg="Thermostat Could not be turned off", alertype="error"))
 
     
     def get_serialconnectcheck(self):
@@ -213,13 +215,13 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         
     def on_event(self, event, payload):
         if event == Events.PRINT_FAILED:
-            if self.stopprintaftererror:
+            if self._settings.get(["stopprintaftererror"]):
                 turnoff()
         if event == Events.PRINT_DONE:
-            if self.stopprintaftererror:
+            if self._settings.get(["stopprintaftererror"]):
                 turnoff()
         if event == Events.PRINT_CANCELLED:
-            if self.stopprintaftererror:
+            if self._settings.get(["stopprintaftercancel"]):
                 turnoff()
 
             

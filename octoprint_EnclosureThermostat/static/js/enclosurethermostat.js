@@ -153,7 +153,7 @@ $(function() {
 		  return window.PLUGIN_BASEURL + self.pluginName + path;
 		};
 	//Graph
-    var arrayLength = 60
+    var arrayLength = 120
 	//var newArrayY = []
 	//var newArrayX = []
 	
@@ -192,7 +192,7 @@ $(function() {
 		  
 		  Plotly.update('graph', data_update)
 		} 
-	  if(cnt === 100) clearInterval(interval);
+	  if(cnt === 500) clearInterval(interval);
 	}, 5000);
 	
 	
