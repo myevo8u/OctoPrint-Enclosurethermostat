@@ -6,7 +6,7 @@ I am still working on some sections of the code (E.g the graph used with plotpy)
 
 ## Setup
 
-Install manually using this URL, Updates will be detected automatically:
+Install manually via plugin manager using this URL, Updates will be detected automatically:
 
     https://github.com/myevo8u/OctoPrint-Enclosurethermostat/archive/master.zip
 
