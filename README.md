@@ -1,17 +1,15 @@
 # OctoPrint-Enclosurethermostat
 
-**TODO:** Describe what your plugin does.
+This plugin was custom written to assist in controlling my arduino controlled Cooling/Heating system for my 3d printer enclosure VIA serial connection. This plugin can deffinitley be reprposed to be used to control other serial connected devices. Once I feel like this is in good working order, I will also release the Arduino code as well which controls the 120v heater and 12v fan for cooling.
+
+I am still working on some sections of the code (E.g the graph used with plotpy)
 
 ## Setup
 
-Install via the bundled [Plugin Manager](https://docs.octoprint.org/en/master/bundledplugins/pluginmanager.html)
-or manually using this URL:
+Install manually using this URL, Updates will be detected automatically:
 
     https://github.com/myevo8u/OctoPrint-Enclosurethermostat/archive/master.zip
 
-**TODO:** Describe how to install your plugin, if more needs to be done than just installing it via pip or through
-the plugin manager.
-
 ## Configuration
 
-**TODO:** Describe your plugin's configuration options (if any).
+You must set the COM port and baud rate.
