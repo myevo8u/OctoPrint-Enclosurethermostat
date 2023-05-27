@@ -155,7 +155,7 @@ $(function() {
 				self.EnclTemp(data.enclosureTemp)
 			}
 			if (data.enclosuretargettemp){
-				if (self.GlobalTargTemp == "FILA" || self.GlobalTargTemp == "TEMP"){
+				if (self.GlobalTargTemp == "FILA" || self.GlobalTargTemp == "TEMP" || self.GlobalTargTemp == "COOL"){
 					self.TargetTempVis(true);
 					self.TargetTempVal(String(data.enclosuretargettemp));
 				} else {
