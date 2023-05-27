@@ -6,6 +6,7 @@ $(function() {
 		self.EnclTemp = ko.observable("");
 		self.CurMode = ko.observable("");
 		self.EnclStatus = ko.observable("");
+		self.TargetTempInt = ko.observable("");
 		self.TargetTempVal = ko.observable("");
 		self.TargetTempVis = ko.observable(false);
 		self.GlobalTargTemp = ""
@@ -158,6 +159,7 @@ $(function() {
 				if (self.GlobalTargTemp == "FILA" || self.GlobalTargTemp == "TEMP" || self.GlobalTargTemp == "COOL"){
 					self.TargetTempVis(true);
 					self.TargetTempVal(String(data.enclosuretargettemp));
+					self.TargetTempInt(data.enclosuretargettemp)
 				} else {
 					self.TargetTempVis(false);
 				}	
@@ -182,18 +184,18 @@ $(function() {
 		  return window.PLUGIN_BASEURL + self.pluginName + path;
 		};
 
-
 		// Declare variables
 		var timestamps = [];
 		var temperatures = [];
-		var targetTemperature = self.TargetTempVal();
+		var targetTemperature = self.TargetTempInt();
 
 		// Create initial graph
 		var data = [{
 		x: timestamps,
 		y: temperatures,
 		mode: 'lines',
-		line: { color: '#0d8bd6' }
+		line: { color: '#0d8bd6' },
+		name: 'Current Temperature'
 		}, {
 		x: timestamps,
 		y: Array(timestamps.length).fill(targetTemperature),
@@ -220,7 +222,7 @@ $(function() {
 
 		// Update graph with live temperature data and check for target updates
 		setInterval(function() {
-		var temperature = self.EnclTemp();
+		var temperature = Math.round(self.EnclTemp());
 
 		timestamps.push(new Date());
 		temperatures.push(temperature);
@@ -238,7 +240,7 @@ $(function() {
 		}
 
 		Plotly.update('graph', { x: [timestamps], y: [temperatures] });
-		}, 5000);	
+		}, 5000);
 	
     }
 
