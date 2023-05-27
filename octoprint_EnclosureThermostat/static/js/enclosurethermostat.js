@@ -154,15 +154,12 @@ $(function() {
 			}
 			if (data.enclosureTemp){
 				self.EnclTemp(data.enclosureTemp)
-				console.log(`self.encltemp: ${self.EnclTemp()}`)
 			}
 			if (data.enclosuretargettemp){
 				if (self.GlobalTargTemp == "FILA" || self.GlobalTargTemp == "TEMP" || self.GlobalTargTemp == "COOL"){
 					self.TargetTempVis(true);
 					self.TargetTempVal(String(data.enclosuretargettemp));
-					self.TargetTempInt(data.enclosuretargettemp)
-					console.log(`self.targettemp: ${parseInt(self.TargetTempInt())}`)
-					console.log(`data.enclosuretargettemp: ${data.enclosuretargettemp}`)
+					self.TargetTempInt(parseInt(data.enclosuretargettemp))
 				} else {
 					self.TargetTempVis(false);
 				}	
@@ -242,7 +239,7 @@ setInterval(function() {
     data[1].y = Array(timestamps.length).fill(targetTemperature);
   }
 
-  Plotly.update('graph', { x: [timestamps], y: [temperatures] });
+  Plotly.update('graph', { x: [timestamps, timestamps], y: [temperatures, Array(timestamps.length).fill(targetTemperature)] });
 }, 5000);
 	
     }
