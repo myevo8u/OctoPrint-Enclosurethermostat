@@ -136,7 +136,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 return jsonify(success=False)
 
     @octoprint.plugin.BlueprintPlugin.route("/coolpid", methods=["GET"])
-    def mythermostatmantemp(self):
+    def mycoolpid(self):
         if (self.RequestCommandProcess == False):
             self.RequestCommandProcess = True  
             try:

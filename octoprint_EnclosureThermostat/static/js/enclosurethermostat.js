@@ -160,6 +160,8 @@ $(function() {
 					self.TargetTempVis(true);
 					self.TargetTempVal(String(data.enclosuretargettemp));
 					self.TargetTempInt(data.enclosuretargettemp)
+					console.log(`self.targettemp: ${self.TargetTempInt}`)
+					console.log(`data.enclosuretargettemp: ${data.enclosuretargettemp}`)
 				} else {
 					self.TargetTempVis(false);
 				}	
