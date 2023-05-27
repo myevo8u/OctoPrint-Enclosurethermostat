@@ -229,7 +229,7 @@ setInterval(function() {
   timestamps.push(new Date());
   temperatures.push(temperature);
 
-  if (timestamps.length > 50) {
+  if (timestamps.length > 300) {
     timestamps.shift();
     temperatures.shift();
   }
