@@ -184,63 +184,63 @@ $(function() {
 		  return window.PLUGIN_BASEURL + self.pluginName + path;
 		};
 
-		// Declare variables
-		var timestamps = [];
-		var temperatures = [];
-		var targetTemperature = self.TargetTempInt();
+// Declare variables
+var timestamps = [];
+var temperatures = [];
+var targetTemperature = parseInt(self.TargetTempInt());
 
-		// Create initial graph
-		var data = [{
-		x: timestamps,
-		y: temperatures,
-		mode: 'lines',
-		line: { color: '#0d8bd6' },
-		name: 'Current Temperature'
-		}, {
-		x: timestamps,
-		y: Array(timestamps.length).fill(targetTemperature),
-		mode: 'lines',
-		line: { color: '#bbe5fc', dash: 'dash' },
-		name: 'Target Temperature'
-		}];
+// Create initial graph
+var data = [{
+  x: timestamps,
+  y: temperatures,
+  mode: 'lines',
+  line: { color: '#0d8bd6' },
+  name: 'Current Temperature'
+}, {
+  x: timestamps,
+  y: Array(timestamps.length).fill(targetTemperature),
+  mode: 'lines',
+  line: { color: '#bbe5fc', dash: 'dash' },
+  name: 'Target Temperature'
+}];
 
-		var layout = {
-		title: 'Enclosure Temperature Graph',
-		xaxis: {
-			title: 'Timestamp'
-		},
-		yaxis: {
-			title: 'Temperature'
-		},
-		legend: {
-			x: 1,
-			y: 1
-		}
-		};
+var layout = {
+  title: 'Enclosure Temperature Graph',
+  xaxis: {
+    title: 'Timestamp'
+  },
+  yaxis: {
+    title: 'Temperature'
+  },
+  legend: {
+    x: 1,
+    y: 1
+  }
+};
 
-		Plotly.newPlot('graph', data, layout);
+Plotly.newPlot('graph', data, layout);
 
-		// Update graph with live temperature data and check for target updates
-		setInterval(function() {
-		var temperature = Math.round(self.EnclTemp());
+// Update graph with live temperature data and check for target updates
+setInterval(function() {
+  var temperature = Math.round(parseInt(self.EnclTemp()));
 
-		timestamps.push(new Date());
-		temperatures.push(temperature);
+  timestamps.push(new Date());
+  temperatures.push(temperature);
 
-		if (timestamps.length > 50) {
-			timestamps.shift();
-			temperatures.shift();
-		}
+  if (timestamps.length > 50) {
+    timestamps.shift();
+    temperatures.shift();
+  }
 
-		// Check if target temperature has been updated
-		var updatedTarget = self.TargetTempVal();
-		if (updatedTarget !== targetTemperature) {
-			targetTemperature = updatedTarget;
-			data[1].y = Array(timestamps.length).fill(targetTemperature);
-		}
+  // Check if target temperature has been updated
+  var updatedTarget = parseInt(self.TargetTempInt());
+  if (updatedTarget !== targetTemperature) {
+    targetTemperature = updatedTarget;
+    data[1].y = Array(timestamps.length).fill(targetTemperature);
+  }
 
-		Plotly.update('graph', { x: [timestamps], y: [temperatures] });
-		}, 5000);
+  Plotly.update('graph', { x: [timestamps], y: [temperatures] });
+}, 5000);
 	
     }
 
