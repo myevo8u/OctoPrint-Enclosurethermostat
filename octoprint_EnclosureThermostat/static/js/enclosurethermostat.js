@@ -81,6 +81,35 @@ $(function() {
 			}				
 		};
 		
+		self.thermostatcoolpid = function() {
+			tempval = $("#coolpidtempval").val();
+			try {
+				tempval = parseInt(tempval);
+				let comparenumber = Number.isFinite(tempval);
+				if (comparenumber){
+					if (tempval >60 && tempval < 141){					
+						var request = {"tempval": tempval};
+						$.ajax({
+							type: "GET",
+							dataType: "json",
+							data: request,
+							url: self.buildPluginUrl("/coolpid"),
+							success: function(data) {
+								new PNotify({
+										title: "Thermostat Update",
+										text: "Cooling Mode",
+										type: "success",
+										hide: true
+									});
+								}
+						});
+				}
+			}
+			} catch (error) {
+
+			}				
+		};		
+
 		self.thermostatmanpwm = function() {
 			pwmtempval = $("#manpwmval").val();
 			try {

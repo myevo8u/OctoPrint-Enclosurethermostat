@@ -135,7 +135,35 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 self.RequestCommandProcess = False
                 return jsonify(success=False)
 
-        
+    @octoprint.plugin.BlueprintPlugin.route("/coolpid", methods=["GET"])
+    def mythermostatmantemp(self):
+        if (self.RequestCommandProcess == False):
+            self.RequestCommandProcess = True  
+            try:
+                if self.serialconnected:
+                    data = request.values["tempval"]
+                    self._logger.info("Setting Temp..")
+                    command = "<M4>"
+                    self.arduino.write(command.encode('utf-8'))
+                    time.sleep(0.1)
+                    response = self.arduino.readline().decode().strip()
+                    if response == "200":
+                        self._logger.info("Mode changed: " + command)
+                        self.arduino.flush()
+                        command = "<T" + data + ">"
+                        self.arduino.write(command.encode('utf-8'))
+                        time.sleep(0.1)
+                        response = self.arduino.readline().decode().strip()
+                        if response == "200":
+                            self._logger.info("Target Temp changed: " + command)
+                            self.RequestCommandProcess = False
+                            return jsonify(success=True)                          
+                self.RequestCommandProcess = False       
+            except:
+                self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                self.RequestCommandProcess = False
+                return jsonify(success=False)       
+
     @octoprint.plugin.BlueprintPlugin.route("/thermostatmanpwm", methods=["GET"])
     def mythermostatmanpwm(self):
         if (self.RequestCommandProcess == False):
