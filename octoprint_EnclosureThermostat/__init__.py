@@ -327,6 +327,16 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                         self._logger.info("Target Temp: " + self.TargetTemp)
                         self._plugin_manager.send_plugin_message(self._identifier,
                                                                  dict(enclosuretargettemp=str(self.TargetTemp)))
+                    elif (self.mode == "COOL"):
+                        command = "<SManualTargetTemp>"
+                        self.arduino.write(command.encode('utf-8'))
+                        time.sleep(0.1)
+                        response = self.arduino.readline().decode().strip()
+                        self.TargetTemp = response
+                        self.arduino.flush()   
+                        self._logger.info("Target Temp: " + self.TargetTemp)
+                        self._plugin_manager.send_plugin_message(self._identifier,
+                                                                 dict(enclosuretargettemp=str(self.TargetTemp)))
                     else:
                         self._logger.info("Target Temp: None")
                         self._plugin_manager.send_plugin_message(self._identifier,
