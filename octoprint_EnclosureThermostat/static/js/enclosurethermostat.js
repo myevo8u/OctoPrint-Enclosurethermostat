@@ -181,48 +181,42 @@ $(function() {
 		self.buildPluginUrl = function (path) {
 		  return window.PLUGIN_BASEURL + self.pluginName + path;
 		};
-	//Graph
-    var arrayLength = 120
-	//var newArrayY = []
-	//var newArrayX = []
-	
-	
-	for(var i = 0; i < arrayLength; i++) {
-		var x = new Date();
-		self.newArrayX().push(x);
-		var y = self.EnclTemp(); //Math.round(parseInt(self.EnclTemp()));
-		self.newArrayY().push(y);
-	}
 
-	Plotly.newPlot('graph', [{
-	  x: [self.newArrayX()], 
-	  y: [self.newArrayY()],
-	  mode: 'lines',
-	  line: {color: '#80CAF6'}
-	}]);  
+		
+// Define newArrayX and newArrayY as arrays
+var newArrayX = [];
+var newArrayY = [];
 
-	var cnt = 0;
+// Initialize graph
+Plotly.newPlot('graph', [{
+  x: newArrayX,
+  y: newArrayY,
+  mode: 'lines',
+  line: { color: '#80CAF6' }
+}]);
 
-	var interval = setInterval(function() {
-	  var tempint = parseInt(self.EnclTemp());
-	  let comparetemp = Number.isFinite(tempint);
-		if (comparetemp){
-		  var x = new Date();
-		  self.newArrayX().push(x)
-		  self.newArrayX().splice(0, 1)	  
-		  var y = self.EnclTemp();
-		  self.newArrayY().push(y)
-		  self.newArrayY().splice(0, 1)
-		  
-		  var data_update = {
-		  x: [self.newArrayX()],
-		  y: [self.newArrayY()]
-		  };
-		  
-		  Plotly.update('graph', data_update)
-		} 
-	  if(cnt === 500) clearInterval(interval);
-	}, 5000);
+var cnt = 0;
+
+var interval = setInterval(function() {
+  var tempint = parseInt(self.EnclTemp());
+  let comparetemp = Number.isFinite(tempint);
+  if (comparetemp) {
+    var x = new Date();
+    newArrayX.push(x);
+    newArrayX.splice(0, 1);
+    var y = self.EnclTemp();
+    newArrayY.push(y);
+    newArrayY.splice(0, 1);
+
+    var data_update = {
+      x: newArrayX,
+      y: newArrayY
+    };
+
+    Plotly.update('graph', data_update);
+  }
+  if (cnt === 500) clearInterval(interval);
+}, 5000);
 	
 	
 	
