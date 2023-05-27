@@ -182,43 +182,63 @@ $(function() {
 		  return window.PLUGIN_BASEURL + self.pluginName + path;
 		};
 
-		
-// Define newArrayX and newArrayY as arrays
-var newArrayX = [];
-var newArrayY = [];
 
-// Initialize graph
-Plotly.newPlot('graph', [{
-  x: newArrayX,
-  y: newArrayY,
-  mode: 'lines',
-  line: { color: '#80CAF6' }
-}]);
+		// Declare variables
+		var timestamps = [];
+		var temperatures = [];
+		var targetTemperature = self.TargetTempVal();
 
-var cnt = 0;
+		// Create initial graph
+		var data = [{
+		x: timestamps,
+		y: temperatures,
+		mode: 'lines',
+		line: { color: '#0d8bd6' }
+		}, {
+		x: timestamps,
+		y: Array(timestamps.length).fill(targetTemperature),
+		mode: 'lines',
+		line: { color: '#bbe5fc', dash: 'dash' },
+		name: 'Target Temperature'
+		}];
 
-var interval = setInterval(function() {
-  var tempint = parseInt(self.EnclTemp());
-  let comparetemp = Number.isFinite(tempint);
-  if (comparetemp) {
-    var x = new Date();
-    newArrayX.push(x);
-    newArrayX.splice(0, 1);
-    var y = self.EnclTemp();
-    newArrayY.push(y);
-    newArrayY.splice(0, 1);
+		var layout = {
+		title: 'Enclosure Temperature Graph',
+		xaxis: {
+			title: 'Timestamp'
+		},
+		yaxis: {
+			title: 'Temperature'
+		},
+		legend: {
+			x: 1,
+			y: 1
+		}
+		};
 
-    var data_update = {
-      x: newArrayX,
-      y: newArrayY
-    };
+		Plotly.newPlot('graph', data, layout);
 
-    Plotly.update('graph', data_update);
-  }
-  if (cnt === 500) clearInterval(interval);
-}, 5000);
-	
-	
+		// Update graph with live temperature data and check for target updates
+		setInterval(function() {
+		var temperature = self.EnclTemp();
+
+		timestamps.push(new Date());
+		temperatures.push(temperature);
+
+		if (timestamps.length > 50) {
+			timestamps.shift();
+			temperatures.shift();
+		}
+
+		// Check if target temperature has been updated
+		var updatedTarget = self.TargetTempVal();
+		if (updatedTarget !== targetTemperature) {
+			targetTemperature = updatedTarget;
+			data[1].y = Array(timestamps.length).fill(targetTemperature);
+		}
+
+		Plotly.update('graph', { x: [timestamps], y: [temperatures] });
+		}, 5000);	
 	
     }
 
