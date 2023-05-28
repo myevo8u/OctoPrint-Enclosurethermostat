@@ -13,7 +13,7 @@ $(function() {
 		self.newArrayY = ko.observableArray();
 		self.newArrayX = ko.observableArray();
 		self.ChartData = ko.observableArray();
-		self.thermostatTimeout = false;
+		self.maintainThermostatBool = false;
 		
 		self.onBeforeBinding = function () {
             self.settings = self.global_settings.settings.plugins.EnclosureThermostat;
@@ -139,8 +139,8 @@ $(function() {
 			} catch (error) {
 
 			}				
-		};		
-	
+		};
+		
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 			if (plugin != "EnclosureThermostat") {
 				return;
@@ -154,45 +154,46 @@ $(function() {
 					});
 			}
 			if(data.type == "endprint") {
-				// Function to be called if the timeout button is not pressed within 15 seconds
-				function handleTimeout() {
-					self.thermostatoff()
+				if (self.maintainThermostatBool == false) {
+					self.maintainThermostatBool = true;
+					self.handleTimeout = function(){
+						self.thermostatoff()
+						new PNotify({
+							title: "Turning Thermostat Off",
+							text: "No action was taken to extend Thermostat",
+							type: data.alertype,
+							hide: true
+							});
+						self.maintainThermostatBool = false;
+					}
+					// Function to handle the button click events
+					self.maintainThermostat = function() {
+						clearTimeout(thermostatTimeoutTimer);
+						new PNotify({
+							title: "Thermostat Extended",
+							text: "Thermostat will remain on!",
+							type: "success",
+							hide: true
+						});
+						self.maintainThermostatBool = false;
+					}
+					var thermostatTimeoutTimer = setTimeout(handleTimeout, 15000);
 					new PNotify({
-						title: "Turning Thermostat Off",
-						text: "No action was taken to extend Thermostat",
+						title: data.title,
+						text: data.msg,
 						type: data.alertype,
-						hide: true
+						hide: false,
+						confirm: {
+							confirm: true,
+							buttons: [
+							{
+								text: "Keep Thermostat On!",
+								click: self.maintainThermostat()
+							}
+							]
+						}
 						});
 				}
-				// Function to handle the button click events
-				function maintainThermostat(event, notice) {
-					clearTimeout(thermostatTimeoutTimer);
-					new PNotify({
-						title: "Thermostat Extended",
-						text: "Thermostat will remain on!",
-						type: "success",
-						hide: true
-					});
-				}
-				new PNotify({
-					title: data.title,
-					text: data.msg,
-					type: data.alertype,
-					hide: false,
-					buttons: {
-						closer: false,
-						sticker: false
-					  },
-					  confirm: {
-						buttons: [
-						  {
-							text: "Keep Thermostat On!",
-							click: maintainThermostat()
-						  }
-						]
-					  }
-					});
-				var thermostatTimeoutTimer = setTimeout(handleTimeout, 15000);
 			}
 			if (data.enclosureTemp){
 				self.EnclTemp(data.enclosureTemp)
