@@ -222,7 +222,7 @@ $(function() {
 
 		// Update graph with live temperature data and check for target updates
 		setInterval(function() {
-		var temperature = parseInt(self.EnclTemp());
+		var temperature = parseFloat(self.EnclTemp());
 
 		timestamps.push(new Date());
 		temperatures.push(temperature);
