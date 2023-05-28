@@ -19,7 +19,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def __init__(self):
         self._checkTempTimer = None
         self._ThermostatTimeoutTimer = None
-        self._ThermostatTimeoutBool = False
+        self.ThermostatTimeoutBool = False
         self.temp = 0
         self.mode = ""
         self.status = ""
@@ -30,11 +30,11 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.RequestCommandProcess = False
 
     def start_Thermostat_Timeout_Timer(self, interval):
-        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatofftimer, run_first=False)
+        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatofftimer, condition=self.ThermostatTimeoutBool, run_first=False)
         self._ThermostatTimeoutTimer.start() 
 
     def stop_Thermostat_Timeout_Timer(self):
-        self._ThermostatTimeoutTimer.cancel
+        self._ThermostatTimeoutTimer.cancel()
 
     def start_tempcheck_timer(self, interval):
         self._checkTempTimer = RepeatedTimer(interval, self.get_enclosure_temp, run_first=True)
@@ -65,8 +65,8 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         if (self.RequestCommandProcess == False):
             self.RequestCommandProcess = True  
             try:
-                if self._ThermostatTimeoutBool:
-                    self._ThermostatTimeoutBool = False
+                if self.ThermostatTimeoutBool:
+                    self.ThermostatTimeoutBool = False
                     self.stop_Thermostat_Timeout_Timer()
                     if self.serialconnected:
                         self._logger.info("Getting Enclosure Temp..")
@@ -87,8 +87,8 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     @octoprint.plugin.BlueprintPlugin.route("/thermostatdelayed", methods=["GET"])
     def thermostattimeout(self):
         try:
-            if self._ThermostatTimeoutBool:
-                self._ThermostatTimeoutBool = False
+            if self.ThermostatTimeoutBool:
+                self.ThermostatTimeoutBool = False
                 self.stop_Thermostat_Timeout_Timer()
             return jsonify(success=True)
         except:
@@ -111,8 +111,8 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     self.RequestCommandProcess = False
                     return jsonify(success=True)
                 self.RequestCommandProcess = False
-                if self._ThermostatTimeoutBool:
-                    self._ThermostatTimeoutBool = False
+                if self.ThermostatTimeoutBool:
+                    self.ThermostatTimeoutBool = False
                     self.stop_Thermostat_Timeout_Timer()
             except:
                 self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
@@ -273,23 +273,23 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.start_serialconnectioncheck_timer(30)
         
     def stop_tempcheck_timer(self):
-        self._checkTempTimer.cancel
+        self._checkTempTimer.cancel()
         
     def on_event(self, event, payload):
         if event == octoprint.events.Events.PRINT_FAILED:
             if self._settings.get(["stopprintaftererror"]):
                 self.start_Thermostat_Timeout_Timer(20)
-                self._ThermostatTimeoutBool = True
+                self.ThermostatTimeoutBool = True
                 self.turnoff()
         if event == octoprint.events.Events.PRINT_DONE:
             if self._settings.get(["stopprintaftererror"]):
                 self.start_Thermostat_Timeout_Timer(20)
-                self._ThermostatTimeoutBool = True
+                self.ThermostatTimeoutBool = True
                 self.turnoff()
         if event == octoprint.events.Events.PRINT_CANCELLED:
             if self._settings.get(["stopprintaftercancel"]):
                 self.start_Thermostat_Timeout_Timer(20)
-                self._ThermostatTimeoutBool = True
+                self.ThermostatTimeoutBool = True
                 self.turnoff()
             
     def get_enclosure_temp(self):
