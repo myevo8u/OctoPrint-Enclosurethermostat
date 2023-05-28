@@ -14,6 +14,7 @@ $(function() {
 		self.newArrayX = ko.observableArray();
 		self.ChartData = ko.observableArray();
 		self.maintainThermostatBool = false;
+		self.thermostatTimeoutTimer;
 		
 		self.onBeforeBinding = function () {
             self.settings = self.global_settings.settings.plugins.EnclosureThermostat;
@@ -141,6 +142,28 @@ $(function() {
 			}				
 		};
 		
+		self.handleTimeout = function(){
+			self.thermostatoff()
+			new PNotify({
+				title: "Turning Thermostat Off",
+				text: "No action was taken to extend Thermostat",
+				type: data.alertype,
+				hide: true
+				});
+			self.maintainThermostatBool = false;
+		}
+		// Function to handle the button click events
+		self.maintainThermostat = function() {
+			clearTimeout(self.thermostatTimeoutTimer);
+			new PNotify({
+				title: "Thermostat Extended",
+				text: "Thermostat will remain on!",
+				type: "success",
+				hide: true
+			});
+			self.maintainThermostatBool = false;
+		}
+
 		self.onDataUpdaterPluginMessage = function(plugin, data) {
 			if (plugin != "EnclosureThermostat") {
 				return;
@@ -156,28 +179,7 @@ $(function() {
 			if(data.type == "endprint") {
 				if (self.maintainThermostatBool == false) {
 					self.maintainThermostatBool = true;
-					self.handleTimeout = function(){
-						self.thermostatoff()
-						new PNotify({
-							title: "Turning Thermostat Off",
-							text: "No action was taken to extend Thermostat",
-							type: data.alertype,
-							hide: true
-							});
-						self.maintainThermostatBool = false;
-					}
-					// Function to handle the button click events
-					self.maintainThermostat = function() {
-						clearTimeout(thermostatTimeoutTimer);
-						new PNotify({
-							title: "Thermostat Extended",
-							text: "Thermostat will remain on!",
-							type: "success",
-							hide: true
-						});
-						self.maintainThermostatBool = false;
-					}
-					var thermostatTimeoutTimer = setTimeout(self.handleTimeout(), 15000);
+					self.thermostatTimeoutTimer = setTimeout(self.handleTimeout(), 15000);
 					new PNotify({
 						title: data.title,
 						text: data.msg,
