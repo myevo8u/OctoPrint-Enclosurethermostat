@@ -210,7 +210,11 @@ $(function() {
 			title: 'Timestamp'
 		},
 		yaxis: {
-			title: 'Temperature'
+			title: 'Temperature',
+			tick0: 0,
+			dtick: .5,
+			tickmode: 'linear',
+			nticks: 20
 		},
 		legend: {
 			x: 1,
