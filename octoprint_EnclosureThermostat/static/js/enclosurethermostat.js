@@ -177,7 +177,7 @@ $(function() {
 						});
 						self.maintainThermostatBool = false;
 					}
-					var thermostatTimeoutTimer = setTimeout(handleTimeout, 15000);
+					var thermostatTimeoutTimer = setTimeout(self.handleTimeout(), 15000);
 					new PNotify({
 						title: data.title,
 						text: data.msg,
