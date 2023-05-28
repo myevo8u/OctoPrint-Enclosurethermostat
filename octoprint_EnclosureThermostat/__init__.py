@@ -242,16 +242,15 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self._checkTempTimer.cancel
         
     def on_event(self, event, payload):
-        if event == Events.PRINT_FAILED:
+        if event == octoprint.events.Events.PRINT_FAILED:
             if self._settings.get(["stopprintaftererror"]):
-                turnoff()
-        if event == Events.PRINT_DONE:
+                self.turnoff()
+        if event == octoprint.events.Events.PRINT_DONE:
             if self._settings.get(["stopprintaftererror"]):
-                turnoff()
-        if event == Events.PRINT_CANCELLED:
+                self.turnoff()
+        if event == octoprint.events.Events.PRINT_CANCELLED:
             if self._settings.get(["stopprintaftercancel"]):
-                turnoff()
-
+                self.turnoff()
             
     def get_enclosure_temp(self):
         if (self.RequestCommandProcess == False):
