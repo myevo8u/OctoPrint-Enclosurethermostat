@@ -30,7 +30,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.RequestCommandProcess = False
 
     def start_Thermostat_Timeout_Timer(self, interval):
-        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatoff, run_first=True)
+        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatoff, run_first=False)
         self._ThermostatTimeoutTimer.start() 
 
     def stop_Thermostat_Timeout_Timer(self):
