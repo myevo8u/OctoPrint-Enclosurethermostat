@@ -28,9 +28,14 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.serialconnected = False
         self.arduino = s.Serial()  #Define Serial
         self.RequestCommandProcess = False
+    def checkthermobool(self):
+        if self.ThermostatTimeoutBool:
+            return True
+        else:
+            return False
 
     def start_Thermostat_Timeout_Timer(self, interval):
-        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatofftimer, condition=self.ThermostatTimeoutBool, run_first=False)
+        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatofftimer, condition=self.checkthermobool, run_first=False)
         self._ThermostatTimeoutTimer.start() 
 
     def stop_Thermostat_Timeout_Timer(self):
