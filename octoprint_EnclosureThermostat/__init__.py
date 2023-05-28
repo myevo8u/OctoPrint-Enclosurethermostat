@@ -30,7 +30,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.RequestCommandProcess = False
 
     def start_Thermostat_Timeout_Timer(self, interval):
-        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatoff, run_first=False)
+        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatofftimer, run_first=False)
         self._ThermostatTimeoutTimer.start() 
 
     def stop_Thermostat_Timeout_Timer(self):
@@ -61,6 +61,27 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             self._logger.error("Enclosure Thermostat Connection Failed: %s" % (e))
             self.stop_tempcheck_timer()
     
+    def mythermostatofftimer(self):
+        if (self.RequestCommandProcess == False):
+            self.RequestCommandProcess = True  
+            try:
+                if self._ThermostatTimeoutBool:
+                    self._ThermostatTimeoutBool = False
+                    self.stop_Thermostat_Timeout_Timer()
+                    if self.serialconnected:
+                        self._logger.info("Getting Enclosure Temp..")
+                        command = "<M0>"
+                        self.arduino.write(command.encode('utf-8'))
+                        time.sleep(0.1)
+                        response = self.arduino.readline().decode().strip()
+                        self.arduino.flush()
+                        self._logger.info(self.temp)
+                        self.RequestCommandProcess = False
+                self.RequestCommandProcess = False
+            except:
+                self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
+                self.RequestCommandProcess = False
+   
     ##~~ Blueprint Reader
 
     @octoprint.plugin.BlueprintPlugin.route("/thermostatdelayed", methods=["GET"])
@@ -72,7 +93,6 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             return jsonify(success=True)
         except:
             self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
-            self.RequestCommandProcess = False
             return jsonify(success=False)
 
     @octoprint.plugin.BlueprintPlugin.route("/thermostatoff", methods=["GET"])
