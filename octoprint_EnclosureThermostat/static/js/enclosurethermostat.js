@@ -35,6 +35,23 @@ $(function() {
 					}
 			});
 		};
+
+		self.thermostatdelayed = function() {
+			$.ajax({
+				type: "GET",
+				dataType: "json",
+				url: self.buildPluginUrl("/thermostatdelayed"),
+				success: function(data) {
+					new PNotify({
+							title: "Thermostat Extended",
+							text: "",
+							type: "success",
+							hide: true
+						});
+					}
+			});
+		};
+
 		self.thermostatfilmode = function() {
 
 			mode = $("#FilamentType").val();
@@ -151,6 +168,7 @@ $(function() {
 				hide: true
 				});
 			self.maintainThermostatBool = false;
+			self.thermostatdelayed()
 		}
 		// Function to handle the button click events
 		self.maintainThermostat = function() {
@@ -162,6 +180,7 @@ $(function() {
 				hide: true
 			});
 			self.maintainThermostatBool = false;
+			self.thermostatdelayed()
 		}
 
 		self.onDataUpdaterPluginMessage = function(plugin, data) {

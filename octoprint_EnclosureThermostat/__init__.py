@@ -18,6 +18,8 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                 
     def __init__(self):
         self._checkTempTimer = None
+        self._ThermostatTimeoutTimer = None
+        self._ThermostatTimeoutBool = False
         self.temp = 0
         self.mode = ""
         self.status = ""
@@ -26,7 +28,14 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.serialconnected = False
         self.arduino = s.Serial()  #Define Serial
         self.RequestCommandProcess = False
-    
+
+    def start_Thermostat_Timeout_Timer(self, interval):
+        self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatoff, run_first=True)
+        self._ThermostatTimeoutTimer.start() 
+
+    def stop_Thermostat_Timeout_Timer(self):
+        self._ThermostatTimeoutTimer.cancel
+
     def start_tempcheck_timer(self, interval):
         self._checkTempTimer = RepeatedTimer(interval, self.get_enclosure_temp, run_first=True)
         self._checkTempTimer.start() 
@@ -54,6 +63,18 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     
     ##~~ Blueprint Reader
 
+    @octoprint.plugin.BlueprintPlugin.route("/thermostatdelayed", methods=["GET"])
+    def thermostattimeout(self):
+        try:
+            if self._ThermostatTimeoutBool:
+                self._ThermostatTimeoutBool = False
+                self.stop_Thermostat_Timeout_Timer()
+            return jsonify(success=True)
+        except:
+            self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
+            self.RequestCommandProcess = False
+            return jsonify(success=False)
+
     @octoprint.plugin.BlueprintPlugin.route("/thermostatoff", methods=["GET"])
     def mythermostatoff(self):
         if (self.RequestCommandProcess == False):
@@ -70,7 +91,9 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     self.RequestCommandProcess = False
                     return jsonify(success=True)
                 self.RequestCommandProcess = False
-                
+                if self._ThermostatTimeoutBool:
+                    self._ThermostatTimeoutBool = False
+                    self.stop_Thermostat_Timeout_Timer()
             except:
                 self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
                 self.RequestCommandProcess = False
@@ -235,12 +258,18 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def on_event(self, event, payload):
         if event == octoprint.events.Events.PRINT_FAILED:
             if self._settings.get(["stopprintaftererror"]):
+                self.start_Thermostat_Timeout_Timer(20)
+                self._ThermostatTimeoutBool = True
                 self.turnoff()
         if event == octoprint.events.Events.PRINT_DONE:
             if self._settings.get(["stopprintaftererror"]):
+                self.start_Thermostat_Timeout_Timer(20)
+                self._ThermostatTimeoutBool = True
                 self.turnoff()
         if event == octoprint.events.Events.PRINT_CANCELLED:
             if self._settings.get(["stopprintaftercancel"]):
+                self.start_Thermostat_Timeout_Timer(20)
+                self._ThermostatTimeoutBool = True
                 self.turnoff()
             
     def get_enclosure_temp(self):
