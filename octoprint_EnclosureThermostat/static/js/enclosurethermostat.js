@@ -190,7 +190,7 @@ $(function() {
 							buttons: [
 							{
 								text: "Keep Thermostat On!",
-								click: self.maintainThermostat()
+								click: self.maintainThermostat
 							}
 							]
 						}
