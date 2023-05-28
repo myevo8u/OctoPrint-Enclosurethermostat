@@ -177,9 +177,9 @@ $(function() {
 					});
 			}
 			if(data.type == "endprint") {
-				if (self.maintainThermostatBool == false) {
+				if (self.maintainThermostatBool == false && self.GlobalTargTemp != "OFF") {
 					self.maintainThermostatBool = true;
-					self.thermostatTimeoutTimer = setTimeout(self.handleTimeout(), 15000);
+					self.thermostatTimeoutTimer = setTimeout(self.handleTimeout, 15000);
 					new PNotify({
 						title: data.title,
 						text: data.msg,
@@ -259,7 +259,6 @@ $(function() {
 			tick0: 0,
 			dtick: .5,
 			tickmode: 'linear',
-			nticks: 20
 		},
 		legend: {
 			x: 1,
