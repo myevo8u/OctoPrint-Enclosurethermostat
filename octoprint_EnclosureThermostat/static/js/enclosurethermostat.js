@@ -43,7 +43,7 @@ $(function() {
 				url: self.buildPluginUrl("/thermostatdelayed"),
 				success: function(data) {
 					new PNotify({
-							title: "Thermostat Extended",
+							title: "Thermostat Acknowledged",
 							text: "",
 							type: "success",
 							hide: true
