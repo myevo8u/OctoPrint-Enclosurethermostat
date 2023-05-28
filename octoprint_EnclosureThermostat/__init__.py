@@ -198,19 +198,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def turnoff(self):
         try:
             if self.serialconnected:
-                command = "<M0>"
-                self.arduino.write(command.encode('utf-8'))
-                time.sleep(0.1)
-                response = self.arduino.readline().decode().strip()
-                self.arduino.flush()
-                self._logger.info(self.temp)
-                self.RequestCommandProcess = False
-                self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Turned Off", msg="Printing Stopped", alertype="success"))
-            self.RequestCommandProcess = False
+                self._plugin_manager.send_plugin_message(self._identifier, dict(type="endprint", title="Thermostat Turning Off!", msg="Printing Stopped", alertype="success"))
       
         except:
             self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
-            self.RequestCommandProcess = False
             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Error", msg="Thermostat Could not be turned off", alertype="error"))
 
     

@@ -9,10 +9,11 @@ $(function() {
 		self.TargetTempInt = ko.observable("");
 		self.TargetTempVal = ko.observable("");
 		self.TargetTempVis = ko.observable(false);
-		self.GlobalTargTemp = ""
+		self.GlobalTargTemp = "";
 		self.newArrayY = ko.observableArray();
 		self.newArrayX = ko.observableArray();
 		self.ChartData = ko.observableArray();
+		self.thermostatTimeout = false;
 		
 		self.onBeforeBinding = function () {
             self.settings = self.global_settings.settings.plugins.EnclosureThermostat;
@@ -151,6 +152,47 @@ $(function() {
 					type: data.alertype,
 					hide: true
 					});
+			}
+			if(data.type == "endprint") {
+				// Function to be called if the timeout button is not pressed within 15 seconds
+				function handleTimeout() {
+					self.thermostatoff()
+					new PNotify({
+						title: "Turning Thermostat Off",
+						text: "No action was taken to extend Thermostat",
+						type: data.alertype,
+						hide: true
+						});
+				}
+				// Function to handle the button click events
+				function maintainThermostat(event, notice) {
+					clearTimeout(thermostatTimeoutTimer);
+					new PNotify({
+						title: "Thermostat Extended",
+						text: "Thermostat will remain on!",
+						type: "success",
+						hide: true
+					});
+				}
+				new PNotify({
+					title: data.title,
+					text: data.msg,
+					type: data.alertype,
+					hide: false,
+					buttons: {
+						closer: false,
+						sticker: false
+					  },
+					  confirm: {
+						buttons: [
+						  {
+							text: "Keep Thermostat On!",
+							click: maintainThermostat()
+						  }
+						]
+					  }
+					});
+				var thermostatTimeoutTimer = setTimeout(handleTimeout, 15000);
 			}
 			if (data.enclosureTemp){
 				self.EnclTemp(data.enclosureTemp)
