@@ -305,7 +305,8 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def custom_atcommand_handler(self, comm, phase, command, parameters, tags=None, *args, **kwargs):
         if self.printing and command == "THERMOSTAT_COOL":
             if parameters:
-                valuesetting = parameters
+                self._logger.info(f"THERMOSTAT_COOL: {parameters}")  
+                valuesetting = parameters.strip()
                 if valuesetting.isdigit():
                     valuesetting = int(valuesetting)
 
@@ -331,14 +332,15 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                             self.RequestCommandProcess = False
                             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))     
                             return
-                        except:
-                            self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                        except Exception as err:
+                            self._logger.error(f"Enclosure Thermostat Encountered an Issue: 2: {err}")
                             self.RequestCommandProcess = False
-                            return   
+                            return
 
         if self.printing and command == "THERMOSTAT_MAN":
-            if parameters:    
-                valuesetting = parameters
+            if parameters:
+                self._logger.info(f"THERMOSTAT_MAN: {parameters}")  
+                valuesetting = parameters.strip()
                 if valuesetting.isdigit():
                     valuesetting = int(valuesetting)
 
@@ -364,14 +366,15 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                             self.RequestCommandProcess = False
                             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))
                             return     
-                        except:
-                            self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                        except Exception as err:
+                            self._logger.error(f"Enclosure Thermostat Encountered an Issue: 2: {err}")
                             self.RequestCommandProcess = False
                             return                
             
         if self.printing and command == "THERMOSTAT_PWM":
             if parameters:
-                valuesetting = parameters
+                self._logger.info(f"THERMOSTAT_PWM: {parameters}")  
+                valuesetting = parameters.strip()
                 if valuesetting.isdigit():
                     valuesetting = int(valuesetting)
 
@@ -397,9 +400,9 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                             self.RequestCommandProcess = False  
                             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))
                             return
-                        except:
+                        except Exception as err:
                             self.RequestCommandProcess = False
-                            self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                            self._logger.error(f"Enclosure Thermostat Encountered an Issue: 2: {err}")
                             self.RequestCommandProcess = False
                             return
         return
