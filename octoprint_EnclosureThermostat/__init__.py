@@ -308,7 +308,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 self._logger.info(f"THERMOSTAT_COOL: {parameters}")  
                 valuesetting = parameters.strip()
                 if valuesetting.isdigit():
-                    valuesetting = int(valuesetting)
+                    valuesetting = valuesetting
 
                     if (self.RequestCommandProcess == False):
                         self.RequestCommandProcess = True  
@@ -342,7 +342,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 self._logger.info(f"THERMOSTAT_MAN: {parameters}")  
                 valuesetting = parameters.strip()
                 if valuesetting.isdigit():
-                    valuesetting = int(valuesetting)
+                    valuesetting = valuesetting
 
                     if (self.RequestCommandProcess == False):
                         self.RequestCommandProcess = True  
@@ -376,7 +376,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 self._logger.info(f"THERMOSTAT_PWM: {parameters}")  
                 valuesetting = parameters.strip()
                 if valuesetting.isdigit():
-                    valuesetting = int(valuesetting)
+                    valuesetting = valuesetting
 
                     if (self.RequestCommandProcess == False):
                         self.RequestCommandProcess = True   
