@@ -302,41 +302,43 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         if event == octoprint.events.Events.PRINT_STARTED:
             self.printing = True
     
-    def process_gcode(self, comm, line, *args, **kwargs):
-        if self.printing and "echo:THERMOSTAT:COOL:" in line.strip():
-            valuesetting = line.split(":")[3]
-            if valuesetting.isdigit():
-                valuesetting = int(valuesetting)
+    def custom_atcommand_handler(self, comm, phase, command, parameters, tags=None, *args, **kwargs):
+        if self.printing and command == "THERMOSTAT_COOL":
+            if parameters:
+                valuesetting = parameters
+                if valuesetting.isdigit():
+                    valuesetting = int(valuesetting)
 
-                if (self.RequestCommandProcess == False):
-                    self.RequestCommandProcess = True  
-                    try:
-                        if self.serialconnected:
-                            self._logger.info("Setting Temp..")
-                            command = "<M4>"
-                            self.arduino.write(command.encode('utf-8'))
-                            time.sleep(0.1)
-                            response = self.arduino.readline().decode().strip()
-                            if response == "200":
-                                self._logger.info("Mode changed: " + command)
-                                self.arduino.flush()
-                                command = "<T" + valuesetting + ">"
+                    if (self.RequestCommandProcess == False):
+                        self.RequestCommandProcess = True  
+                        try:
+                            if self.serialconnected:
+                                self._logger.info("Setting Temp..")
+                                command = "<M4>"
                                 self.arduino.write(command.encode('utf-8'))
                                 time.sleep(0.1)
                                 response = self.arduino.readline().decode().strip()
                                 if response == "200":
-                                    self._logger.info("Target Temp changed: " + command)
-                                    self.RequestCommandProcess = False                       
-                        self.RequestCommandProcess = False
-                        self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))     
-                        return line
-                    except:
-                        self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
-                        self.RequestCommandProcess = False
-                        return line   
+                                    self._logger.info("Mode changed: " + command)
+                                    self.arduino.flush()
+                                    command = "<T" + valuesetting + ">"
+                                    self.arduino.write(command.encode('utf-8'))
+                                    time.sleep(0.1)
+                                    response = self.arduino.readline().decode().strip()
+                                    if response == "200":
+                                        self._logger.info("Target Temp changed: " + command)
+                                        self.RequestCommandProcess = False                       
+                            self.RequestCommandProcess = False
+                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))     
+                            return
+                        except:
+                            self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                            self.RequestCommandProcess = False
+                            return   
 
-        if self.printing and "echo:THERMOSTAT:MAN:" in line.strip():
-                valuesetting = line.split(":")[3]
+        if self.printing and command == "THERMOSTAT_MAN":
+            if parameters:    
+                valuesetting = parameters
                 if valuesetting.isdigit():
                     valuesetting = int(valuesetting)
 
@@ -361,14 +363,15 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                         self.RequestCommandProcess = False  
                             self.RequestCommandProcess = False
                             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))
-                            return line     
+                            return     
                         except:
                             self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
                             self.RequestCommandProcess = False
-                            return line                
+                            return                
             
-        if self.printing and "echo:THERMOSTAT:PWM:" in line.strip():
-                valuesetting = line.split(":")[3]
+        if self.printing and command == "THERMOSTAT_PWM":
+            if parameters:
+                valuesetting = parameters
                 if valuesetting.isdigit():
                     valuesetting = int(valuesetting)
 
@@ -393,13 +396,13 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                         self.RequestCommandProcess = False
                             self.RequestCommandProcess = False  
                             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))
-                            return line
+                            return
                         except:
                             self.RequestCommandProcess = False
                             self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
                             self.RequestCommandProcess = False
-                            return line
-        return line
+                            return
+        return
     def get_enclosure_temp(self):
         if (self.RequestCommandProcess == False):
             self.RequestCommandProcess = True
@@ -556,5 +559,5 @@ def __plugin_load__():
     global __plugin_hooks__
     __plugin_hooks__ = {
         "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
-        "octoprint.comm.protocol.gcode.received": __plugin_implementation__.process_gcode
+        "octoprint.comm.protocol.atcommand.queuing": __plugin_implementation__.custom_atcommand_handler
     }
