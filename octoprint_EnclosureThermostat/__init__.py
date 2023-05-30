@@ -329,9 +329,11 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                     self.RequestCommandProcess = False                       
                         self.RequestCommandProcess = False
                         self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))     
+                        return line
                     except:
                         self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
-                        self.RequestCommandProcess = False   
+                        self.RequestCommandProcess = False
+                        return line   
 
         if self.printing and "echo:THERMOSTAT:MAN:" in line.strip():
                 valuesetting = line.split(":")[3]
@@ -358,10 +360,12 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                         self._logger.info("Target Temp changed: " + command)
                                         self.RequestCommandProcess = False  
                             self.RequestCommandProcess = False
-                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))      
+                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))
+                            return line     
                         except:
                             self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
-                            self.RequestCommandProcess = False                   
+                            self.RequestCommandProcess = False
+                            return line                
             
         if self.printing and "echo:THERMOSTAT:PWM:" in line.strip():
                 valuesetting = line.split(":")[3]
@@ -388,12 +392,14 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                         self._logger.info("Fan Speed changed: " + command)
                                         self.RequestCommandProcess = False
                             self.RequestCommandProcess = False  
-                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))  
+                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))
+                            return line
                         except:
                             self.RequestCommandProcess = False
                             self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
                             self.RequestCommandProcess = False
-
+                            return line
+        return line
     def get_enclosure_temp(self):
         if (self.RequestCommandProcess == False):
             self.RequestCommandProcess = True
