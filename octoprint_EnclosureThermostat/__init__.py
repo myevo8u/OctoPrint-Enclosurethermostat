@@ -17,6 +17,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                 octoprint.plugin.EventHandlerPlugin):
                                 
     def __init__(self):
+        self.printing = False
         self._checkTempTimer = None
         self._ThermostatTimeoutTimer = None
         self.ThermostatTimeoutBool = False
@@ -234,9 +235,8 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                         if response == "200":
                             self._logger.info("Fan Speed changed: " + command)
                             self.RequestCommandProcess = False
-                            self.RequestCommandProcess = False
                             return jsonify(success=True)
-                            
+                self.RequestCommandProcess = False                      
             except:
                 self.RequestCommandProcess = False
                 self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
@@ -282,21 +282,118 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         
     def on_event(self, event, payload):
         if event == octoprint.events.Events.PRINT_FAILED:
+            self.printing = False
             if self._settings.get(["stopprintaftererror"]):
                 self.start_Thermostat_Timeout_Timer(20)
                 self.ThermostatTimeoutBool = True
                 self.turnoff()
         if event == octoprint.events.Events.PRINT_DONE:
+            self.printing = False
             if self._settings.get(["stopprintaftererror"]):
                 self.start_Thermostat_Timeout_Timer(20)
                 self.ThermostatTimeoutBool = True
                 self.turnoff()
         if event == octoprint.events.Events.PRINT_CANCELLED:
+            self.printing = False
             if self._settings.get(["stopprintaftercancel"]):
                 self.start_Thermostat_Timeout_Timer(20)
                 self.ThermostatTimeoutBool = True
                 self.turnoff()
+        if event == octoprint.events.Events.PRINT_STARTED:
+            self.printing = True
+    
+    def process_gcode(self, comm, line, *args, **kwargs):
+        if self.printing and "echo:THERMOSTAT:COOL:" in line.strip():
+            valuesetting = line.split(":")[3]
+            if valuesetting.isdigit():
+                valuesetting = int(valuesetting)
+
+                if (self.RequestCommandProcess == False):
+                    self.RequestCommandProcess = True  
+                    try:
+                        if self.serialconnected:
+                            self._logger.info("Setting Temp..")
+                            command = "<M4>"
+                            self.arduino.write(command.encode('utf-8'))
+                            time.sleep(0.1)
+                            response = self.arduino.readline().decode().strip()
+                            if response == "200":
+                                self._logger.info("Mode changed: " + command)
+                                self.arduino.flush()
+                                command = "<T" + valuesetting + ">"
+                                self.arduino.write(command.encode('utf-8'))
+                                time.sleep(0.1)
+                                response = self.arduino.readline().decode().strip()
+                                if response == "200":
+                                    self._logger.info("Target Temp changed: " + command)
+                                    self.RequestCommandProcess = False                       
+                        self.RequestCommandProcess = False
+                        self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))     
+                    except:
+                        self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                        self.RequestCommandProcess = False   
+
+        if self.printing and "echo:THERMOSTAT:MAN:" in line.strip():
+                valuesetting = line.split(":")[3]
+                if valuesetting.isdigit():
+                    valuesetting = int(valuesetting)
+
+                    if (self.RequestCommandProcess == False):
+                        self.RequestCommandProcess = True  
+                        try:
+                            if self.serialconnected:
+                                self._logger.info("Setting Temp..")
+                                command = "<M2>"
+                                self.arduino.write(command.encode('utf-8'))
+                                time.sleep(0.1)
+                                response = self.arduino.readline().decode().strip()
+                                if response == "200":
+                                    self._logger.info("Mode changed: " + command)
+                                    self.arduino.flush()
+                                    command = "<T" + valuesetting + ">"
+                                    self.arduino.write(command.encode('utf-8'))
+                                    time.sleep(0.1)
+                                    response = self.arduino.readline().decode().strip()
+                                    if response == "200":
+                                        self._logger.info("Target Temp changed: " + command)
+                                        self.RequestCommandProcess = False  
+                            self.RequestCommandProcess = False
+                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))      
+                        except:
+                            self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                            self.RequestCommandProcess = False                   
             
+        if self.printing and "echo:THERMOSTAT:PWM:" in line.strip():
+                valuesetting = line.split(":")[3]
+                if valuesetting.isdigit():
+                    valuesetting = int(valuesetting)
+
+                    if (self.RequestCommandProcess == False):
+                        self.RequestCommandProcess = True   
+                        try:
+                            if self.serialconnected:
+                                self._logger.info("Setting Fan Speed..")
+                                command = "<M3>"
+                                self.arduino.write(command.encode('utf-8'))
+                                time.sleep(0.1)
+                                response = self.arduino.readline().decode().strip()
+                                if response == "200":
+                                    self._logger.info("Mode changed: " + command)
+                                    self.arduino.flush()
+                                    command = "<P" + valuesetting + ">"
+                                    self.arduino.write(command.encode('utf-8'))
+                                    time.sleep(0.1)
+                                    response = self.arduino.readline().decode().strip()
+                                    if response == "200":
+                                        self._logger.info("Fan Speed changed: " + command)
+                                        self.RequestCommandProcess = False
+                            self.RequestCommandProcess = False  
+                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))  
+                        except:
+                            self.RequestCommandProcess = False
+                            self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
+                            self.RequestCommandProcess = False
+
     def get_enclosure_temp(self):
         if (self.RequestCommandProcess == False):
             self.RequestCommandProcess = True
@@ -452,5 +549,6 @@ def __plugin_load__():
 
     global __plugin_hooks__
     __plugin_hooks__ = {
-        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information
+        "octoprint.plugin.softwareupdate.check_config": __plugin_implementation__.get_update_information,
+        "octoprint.comm.protocol.gcode.received": __plugin_implementation__.process_gcode
     }
