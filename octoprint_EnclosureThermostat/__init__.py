@@ -35,7 +35,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         else:
             return False
         
-    def sendcommand(self, command):
+    def SendCommandsThermo(self, command):
         if (self.RequestCommandProcess == False):
             self.RequestCommandProcess = True
             try:
@@ -96,7 +96,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 if self.ThermostatTimeoutBool:
                     self.ThermostatTimeoutBool = False
                     self.stop_Thermostat_Timeout_Timer()
-                    response = self.sendcommand("<M0>")
+                    response = self.SendCommandsThermo("<M0>")
                     if (response == "200"):
                         self._logger.info("Enclosure Thermostat Turned Off due to Timeout.")
                     else: 
@@ -120,7 +120,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     @octoprint.plugin.BlueprintPlugin.route("/thermostatoff", methods=["GET"])
     def mythermostatoff(self):
         try:
-            response = self.sendcommand("<M0>")
+            response = self.SendCommandsThermo("<M0>")
             if response == "200":
                 if self.ThermostatTimeoutBool:
                     self.ThermostatTimeoutBool = False
@@ -137,10 +137,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def mythermostatfilament(self):
         try:
             data = request.values["mode"]
-            response = self.sendcommand("<M1>")
+            response = self.SendCommandsThermo("<M1>")
             if response == "200":
                 self._logger.info(f"Mode changed: Filament Temp")
-                response = self.sendcommand(f"<F{data}>")
+                response = self.SendCommandsThermo(f"<F{data}>")
                 if response == "200":
                     self._logger.info(f"Filament changed: {data}")
                     return jsonify(success=True)
@@ -153,10 +153,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def mythermostatmantemp(self):
         try:
             data = request.values["tempval"]
-            response = self.sendcommand("<M2>")
+            response = self.SendCommandsThermo("<M2>")
             if response == "200":
                 self._logger.info(f"Mode changed: Manual Temp")
-                response = self.sendcommand(f"<T{data}>")
+                response = self.SendCommandsThermo(f"<T{data}>")
                 if response == "200":
                     self._logger.info(f"Manual Target Temp changed: {data}")
                     return jsonify(success=True)
@@ -169,10 +169,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def mycoolpid(self):
         try:
             data = request.values["tempval"]
-            response = self.sendcommand("<M4>")
+            response = self.SendCommandsThermo("<M4>")
             if response == "200":
                 self._logger.info(f"Mode changed: Target Temp Cool")
-                response = self.sendcommand(f"<T{data}>")
+                response = self.SendCommandsThermo(f"<T{data}>")
                 if response == "200":
                     self._logger.info(f"Manual Target Cool Temp changed: {data}")
                     return jsonify(success=True)
@@ -185,10 +185,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def mythermostatmanpwm(self):
         try:
             data = request.values["tempval"]
-            response = self.sendcommand("<M3>")
+            response = self.SendCommandsThermo("<M3>")
             if response == "200":
                 self._logger.info(f"Mode changed: Manual PWM")
-                response = self.sendcommand(f"<P{data}>")
+                response = self.SendCommandsThermo(f"<P{data}>")
                 if response == "200":
                     self._logger.info(f"Manual PWM Fan Speed Changed: {data}")
                     return jsonify(success=True)
@@ -265,10 +265,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 if valuesetting.isdigit():
                     valuesetting = valuesetting
                     try:
-                        response = self.sendcommand("<M4>")
+                        response = self.SendCommandsThermo("<M4>")
                         if response == "200":
                             self._logger.info(f"Mode changed: Target Temp Cool")
-                            response = self.sendcommand(f"<T{valuesetting}>")
+                            response = self.SendCommandsThermo(f"<T{valuesetting}>")
                             if response == "200":
                                 self._logger.info(f"Manual Target Cool Temp changed: {valuesetting}")
                                 self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))   
@@ -282,10 +282,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 if valuesetting.isdigit():
                     valuesetting = valuesetting
                     try:
-                        response = self.sendcommand("<M2>")
+                        response = self.SendCommandsThermo("<M2>")
                         if response == "200":
                             self._logger.info(f"Mode changed: Manual Temp")
-                            response = self.sendcommand(f"<T{valuesetting}>")
+                            response = self.SendCommandsThermo(f"<T{valuesetting}>")
                             if response == "200":
                                 self._logger.info(f"Manual Target Temp changed: {valuesetting}")
                                 self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))   
@@ -299,10 +299,10 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 if valuesetting.isdigit():
                     valuesetting = valuesetting
                     try:
-                        response = self.sendcommand("<M3>")
+                        response = self.SendCommandsThermo("<M3>")
                         if response == "200":
                             self._logger.info(f"Mode changed: Manual PWM")
-                            response = self.sendcommand(f"<P{valuesetting}>")
+                            response = self.SendCommandsThermo(f"<P{valuesetting}>")
                             if response == "200":
                                 self._logger.info(f"Manual PWM Fan Speed Changed: {valuesetting}")
                                 self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))
@@ -313,7 +313,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             #Get Temp
             try:
 
-                response = self.sendcommand("<SInternalTemp>")
+                response = self.SendCommandsThermo("<SInternalTemp>")
                 self._logger.info(f"Response: {response}")
                 if response != "error" and response is not None:
                     self.temp = response
@@ -321,7 +321,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     self._plugin_manager.send_plugin_message(self._identifier,
                                                              dict(enclosureTemp=str(self.temp) + '\u00b0F'))
 
-                response = self.sendcommand("<SMode>")
+                response = self.SendCommandsThermo("<SMode>")
                 self._logger.info(f"Response: {response}")
                 if response != "error" and response is not None:
                     self.mode = response
@@ -329,7 +329,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     self._plugin_manager.send_plugin_message(self._identifier,
                                                              dict(enclosureMode=str(self.mode)))
                                    
-                response = self.sendcommand("<SStatus>")
+                response = self.SendCommandsThermo("<SStatus>")
                 self._logger.info(f"Response: {response}")
                 if response != "error" and response is not None:
                     self.status = response
@@ -338,7 +338,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                                              dict(enclosureStatus=str(self.status)))
 
                 if (self.mode == "FILA"):
-                    response = self.sendcommand("<SFilamentTemp>")
+                    response = self.SendCommandsThermo("<SFilamentTemp>")
                     self._logger.info(f"Response: {response}")
                     if response != "error" and response is not None:
                         self.TargetTemp = response
@@ -346,7 +346,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                         self._plugin_manager.send_plugin_message(self._identifier,
                                                                     dict(enclosuretargettemp=str(self.TargetTemp)))
                 elif (self.mode == "TEMP"):
-                    response = self.sendcommand("<SManualTargetTemp>")
+                    response = self.SendCommandsThermo("<SManualTargetTemp>")
                     self._logger.info(f"Response: {response}")
                     if response != "error" and response is not None:
                         self.TargetTemp = response
@@ -354,7 +354,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                         self._plugin_manager.send_plugin_message(self._identifier,
                                                                     dict(enclosuretargettemp=str(self.TargetTemp)))
                 elif (self.mode == "COOL"):
-                    response = self.sendcommand("<SManualTargetTemp>")
+                    response = self.SendCommandsThermo("<SManualTargetTemp>")
                     self._logger.info(f"Response: {response}")
                     if response != "error" and response is not None:
                         self.TargetTemp = response
