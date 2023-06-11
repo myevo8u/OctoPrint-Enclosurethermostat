@@ -211,6 +211,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         try:
             self.arduino.inWaiting()
         except:
+            self.serialconnected = False
             self._logger.error("Enclosure Thermostat Not Connected.. Retrying Connection")
             self.connect_serial_thermo()
        
