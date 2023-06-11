@@ -276,7 +276,7 @@ $(function() {
 		yaxis: {
 			title: 'Temperature',
 			tick0: 0,
-			dtick: .5,
+			dtick: 1,
 			tickmode: 'linear',
 		},
 		legend: {
@@ -313,7 +313,10 @@ $(function() {
 			}
 			}
 
-		Plotly.update('graph', { x: [timestamps, timestamps], y: [temperatures, Array(timestamps.length).fill(targetTemperature)] });
+		Plotly.update('graph', { x: [timestamps, timestamps], y: [temperatures, Array(timestamps.length).fill(targetTemperature)] }, {
+			'yaxis.tickformat': 'd', // Display whole numbers
+			'yaxis.dtick': 1 // Set the tick interval to 1
+		  });
 		}, 5000);
 	
     }
