@@ -50,7 +50,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     if response != "500" or response != "":
                         self._logger.info(f"Command Successfull: {command}")
                         self.RequestCommandProcess = False
-                        return command
+                        return response
                     else: 
                         self._logger.info(f"Command Failed: {command}")
                         self.RequestCommandProcess = False
