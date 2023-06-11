@@ -43,13 +43,13 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     self._logger.info(f"Sending Command {command}")
                     self.arduino.write(command.encode('utf-8'))
                     time.sleep(0.1)
-                    self.response = self.arduino.readline().decode().strip()
+                    response = self.arduino.readline().decode().strip()
                     self.arduino.flush()
-                    self._logger.info(f"sendcommand {command} Response: {self.response}")
-                    if self.response != "500" and self.response != "" and self.response is not None:
+                    self._logger.info(f"sendcommand {command} Response: {response}")
+                    if response != "500" and response != "" and response is not None:
                         self._logger.info(f"Command Successfull: {command}")
                         self.RequestCommandProcess = False
-                        return self.response
+                        return response
                     else: 
                         self._logger.info(f"Command Failed: {command}")
                         self.RequestCommandProcess = False
