@@ -87,10 +87,9 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             self.serialconnected = True
             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Connected", msg="", alertype="success"))
         except Exception as e:
-            self.serialconnected = False
             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Error", msg="Could not Connect to Thermostat", alertype="error"))
             self._logger.error("Enclosure Thermostat Connection Failed: %s" % (e))
-            self.stop_tempcheck_timer()
+
     
     def mythermostatofftimer(self):
             try:
