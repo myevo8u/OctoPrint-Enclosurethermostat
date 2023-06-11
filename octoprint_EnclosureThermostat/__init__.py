@@ -34,6 +34,31 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             return True
         else:
             return False
+        
+    def sendcommand(self, command):
+        if (self.RequestCommandProcess == False):
+            self.RequestCommandProcess = True
+            try:
+                if self.serialconnected:
+                    self._logger.info("Getting Enclosure Temp..")
+                    self.arduino.write(command.encode('utf-8'))
+                    time.sleep(0.1)
+                    response = self.arduino.readline().decode().strip()
+                    self.arduino.flush()
+                    self._logger.info(self.temp)
+                    self.RequestCommandProcess = False
+                    if response != "500" or response != "":
+                        self._logger.info(f"Command Successfull: {command}")
+                        self.RequestCommandProcess = False
+                        return command
+                    else: 
+                        self._logger.info(f"Command Failed: {command}")
+                        self.RequestCommandProcess = False
+                        return "error"
+            except Exception as e:
+                self._logger.error(f"Enclosure Thermostat Encountered an Issue Sending Command {command}: {e}")
+                self.RequestCommandProcess = False
+                return "error"
 
     def start_Thermostat_Timeout_Timer(self, interval):
         self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatofftimer, condition=self.checkthermobool, run_first=False)
@@ -54,7 +79,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             self.arduino.timeout=0
             #arduino.setDTR(False)
             #arduino.rtscts = True
-            self.arduino.open();
+            self.arduino.open()
             self._logger.info("Enclosure Thermostat Serial Connected.")
             os.system('stty -F /dev/Temp_Controller -hupcl')
             time.sleep(1)
@@ -68,25 +93,17 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             self.stop_tempcheck_timer()
     
     def mythermostatofftimer(self):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True  
             try:
                 if self.ThermostatTimeoutBool:
                     self.ThermostatTimeoutBool = False
                     self.stop_Thermostat_Timeout_Timer()
-                    if self.serialconnected:
-                        self._logger.info("Getting Enclosure Temp..")
-                        command = "<M0>"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        self.arduino.flush()
-                        self._logger.info(self.temp)
-                        self.RequestCommandProcess = False
-                self.RequestCommandProcess = False
-            except:
-                self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
-                self.RequestCommandProcess = False
+                    response = self.sendcommand("<M0>")
+                    if (response == "200"):
+                        self._logger.info("Enclosure Thermostat Turned Off due to Timeout.")
+                    else: 
+                        self._logger.error("Enclosure Thermostat Could not be turned off.")
+            except Exception as e:
+                self._logger.error("Enclosure Thermostat Encountered an Issue: ")
    
     ##~~ Blueprint Reader
 
@@ -103,145 +120,83 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
 
     @octoprint.plugin.BlueprintPlugin.route("/thermostatoff", methods=["GET"])
     def mythermostatoff(self):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True  
-            try:
-                if self.serialconnected:
-                    self._logger.info("Getting Enclosure Temp..")
-                    command = "<M0>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    self.arduino.flush()
-                    self._logger.info(self.temp)
-                    self.RequestCommandProcess = False
-                    return jsonify(success=True)
-                self.RequestCommandProcess = False
+        try:
+            response = self.sendcommand("<M0>")
+            if (response == "200"):
                 if self.ThermostatTimeoutBool:
                     self.ThermostatTimeoutBool = False
                     self.stop_Thermostat_Timeout_Timer()
-            except:
-                self._logger.error("Enclosure Thermostat Encountered an Issue: 1")
-                self.RequestCommandProcess = False
+                return jsonify(success=True)
+            else:
                 return jsonify(success=False)
+        except Exception as e:
+            self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
+            return jsonify(success=False)
 
         
     @octoprint.plugin.BlueprintPlugin.route("/thermostatfilament", methods=["GET"])
     def mythermostatfilament(self):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True  
-            try:
-                if self.serialconnected:
-                    data = request.values["mode"]
-                    self._logger.info("Setting Mode..")
-                    command = "<M1>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    if response == "200":
-                        self._logger.info("Mode changed: " + command)
-                        self.arduino.flush()
-                        command = "<F" + data +">"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        if response == "200":
-                            self._logger.info("Filament changed: " + command)
-                            self.RequestCommandProcess = False
-                            return jsonify(success=True)
-                self.RequestCommandProcess = False
-            except:
-                self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
-                self.RequestCommandProcess = False
-                return jsonify(success=False)
+        try:
+            data = request.values["mode"]
+            response = self.sendcommand("<M1>")
+            if response == "200":
+                self._logger.info(f"Mode changed: Filament Temp")
+                response = self.sendcommand(f"<F{data}>")
+                if response == "200":
+                    self._logger.info(f"Filament changed: {data}")
+                    return jsonify(success=True)
+            return jsonify(success=False)
+        except Exception as e:
+            self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
+            return jsonify(success=False)
         
     @octoprint.plugin.BlueprintPlugin.route("/thermostatmantemp", methods=["GET"])
     def mythermostatmantemp(self):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True  
-            try:
-                if self.serialconnected:
-                    data = request.values["tempval"]
-                    self._logger.info("Setting Temp..")
-                    command = "<M2>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    if response == "200":
-                        self._logger.info("Mode changed: " + command)
-                        self.arduino.flush()
-                        command = "<T" + data + ">"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        if response == "200":
-                            self._logger.info("Target Temp changed: " + command)
-                            self.RequestCommandProcess = False
-                            return jsonify(success=True)                          
-                self.RequestCommandProcess = False       
-            except:
-                self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
-                self.RequestCommandProcess = False
-                return jsonify(success=False)
+        try:
+            data = request.values["tempval"]
+            response = self.sendcommand("<M2>")
+            if response == "200":
+                self._logger.info(f"Mode changed: Manual Temp")
+                response = self.sendcommand(f"<T{data}>")
+                if response == "200":
+                    self._logger.info(f"Manual Target Temp changed: {data}")
+                    return jsonify(success=True)
+            return jsonify(success=False)
+        except Exception as e:
+            self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
+            return jsonify(success=False)  
 
     @octoprint.plugin.BlueprintPlugin.route("/coolpid", methods=["GET"])
     def mycoolpid(self):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True  
-            try:
-                if self.serialconnected:
-                    data = request.values["tempval"]
-                    self._logger.info("Setting Temp..")
-                    command = "<M4>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    if response == "200":
-                        self._logger.info("Mode changed: " + command)
-                        self.arduino.flush()
-                        command = "<T" + data + ">"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        if response == "200":
-                            self._logger.info("Target Temp changed: " + command)
-                            self.RequestCommandProcess = False
-                            return jsonify(success=True)                          
-                self.RequestCommandProcess = False       
-            except:
-                self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
-                self.RequestCommandProcess = False
-                return jsonify(success=False)       
+        try:
+            data = request.values["tempval"]
+            response = self.sendcommand("<M4>")
+            if response == "200":
+                self._logger.info(f"Mode changed: Target Temp Cool")
+                response = self.sendcommand(f"<T{data}>")
+                if response == "200":
+                    self._logger.info(f"Manual Target Cool Temp changed: {data}")
+                    return jsonify(success=True)
+            return jsonify(success=False)
+        except Exception as e:
+            self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
+            return jsonify(success=False)      
 
     @octoprint.plugin.BlueprintPlugin.route("/thermostatmanpwm", methods=["GET"])
     def mythermostatmanpwm(self):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True   
-            try:
-                if self.serialconnected:
-                    data = request.values["tempval"]
-                    self._logger.info("Setting Fan Speed..")
-                    command = "<M3>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    if response == "200":
-                        self._logger.info("Mode changed: " + command)
-                        self.arduino.flush()
-                        command = "<P" + data + ">"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        if response == "200":
-                            self._logger.info("Fan Speed changed: " + command)
-                            self.RequestCommandProcess = False
-                            return jsonify(success=True)
-                self.RequestCommandProcess = False                      
-            except:
-                self.RequestCommandProcess = False
-                self._logger.error("Enclosure Thermostat Encountered an Issue: 2")
-                self.RequestCommandProcess = False
-                return jsonify(success=False)
+        try:
+            data = request.values["tempval"]
+            response = self.sendcommand("<M3>")
+            if response == "200":
+                self._logger.info(f"Mode changed: Manual PWM")
+                response = self.sendcommand(f"<P{data}>")
+                if response == "200":
+                    self._logger.info(f"Manual PWM Fan Speed Changed: {data}")
+                    return jsonify(success=True)
+            return jsonify(success=False)
+        except Exception as e:
+            self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
+            return jsonify(success=False)    
         
     def turnoff(self):
         try:
@@ -309,33 +264,16 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 valuesetting = parameters.strip()
                 if valuesetting.isdigit():
                     valuesetting = valuesetting
-
-                    if (self.RequestCommandProcess == False):
-                        self.RequestCommandProcess = True  
-                        try:
-                            if self.serialconnected:
-                                self._logger.info("Setting Temp..")
-                                command = "<M4>"
-                                self.arduino.write(command.encode('utf-8'))
-                                time.sleep(0.1)
-                                response = self.arduino.readline().decode().strip()
-                                if response == "200":
-                                    self._logger.info("Mode changed: " + command)
-                                    self.arduino.flush()
-                                    command = "<T" + valuesetting + ">"
-                                    self.arduino.write(command.encode('utf-8'))
-                                    time.sleep(0.1)
-                                    response = self.arduino.readline().decode().strip()
-                                    if response == "200":
-                                        self._logger.info("Target Temp changed: " + command)
-                                        self.RequestCommandProcess = False                       
-                            self.RequestCommandProcess = False
-                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))     
-                            return
-                        except Exception as err:
-                            self._logger.error(f"Enclosure Thermostat Encountered an Issue: 2: {err}")
-                            self.RequestCommandProcess = False
-                            return
+                    try:
+                        response = self.sendcommand("<M4>")
+                        if response == "200":
+                            self._logger.info(f"Mode changed: Target Temp Cool")
+                            response = self.sendcommand(f"<T{valuesetting}>")
+                            if response == "200":
+                                self._logger.info(f"Manual Target Cool Temp changed: {valuesetting}")
+                                self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Cooling Mode Enabled!", msg=f"Cooling set to: {valuesetting}F", alertype="success"))   
+                    except Exception as e:
+                        self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
 
         if self.printing and command == "THERMOSTAT_MAN":
             if parameters:
@@ -343,33 +281,16 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 valuesetting = parameters.strip()
                 if valuesetting.isdigit():
                     valuesetting = valuesetting
-
-                    if (self.RequestCommandProcess == False):
-                        self.RequestCommandProcess = True  
-                        try:
-                            if self.serialconnected:
-                                self._logger.info("Setting Temp..")
-                                command = "<M2>"
-                                self.arduino.write(command.encode('utf-8'))
-                                time.sleep(0.1)
-                                response = self.arduino.readline().decode().strip()
-                                if response == "200":
-                                    self._logger.info("Mode changed: " + command)
-                                    self.arduino.flush()
-                                    command = "<T" + valuesetting + ">"
-                                    self.arduino.write(command.encode('utf-8'))
-                                    time.sleep(0.1)
-                                    response = self.arduino.readline().decode().strip()
-                                    if response == "200":
-                                        self._logger.info("Target Temp changed: " + command)
-                                        self.RequestCommandProcess = False  
-                            self.RequestCommandProcess = False
-                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))
-                            return     
-                        except Exception as err:
-                            self._logger.error(f"Enclosure Thermostat Encountered an Issue: 2: {err}")
-                            self.RequestCommandProcess = False
-                            return                
+                    try:
+                        response = self.sendcommand("<M2>")
+                        if response == "200":
+                            self._logger.info(f"Mode changed: Manual Temp")
+                            response = self.sendcommand(f"<T{valuesetting}>")
+                            if response == "200":
+                                self._logger.info(f"Manual Target Temp changed: {valuesetting}")
+                                self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Manual Tempurature Mode Enabled!", msg=f"Temperature set to: {valuesetting}F", alertype="success"))   
+                    except Exception as e:
+                        self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
             
         if self.printing and command == "THERMOSTAT_PWM":
             if parameters:
@@ -377,138 +298,65 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                 valuesetting = parameters.strip()
                 if valuesetting.isdigit():
                     valuesetting = valuesetting
+                    try:
+                        response = self.sendcommand("<M3>")
+                        if response == "200":
+                            self._logger.info(f"Mode changed: Manual PWM")
+                            response = self.sendcommand(f"<P{valuesetting}>")
+                            if response == "200":
+                                self._logger.info(f"Manual PWM Fan Speed Changed: {valuesetting}")
+                                self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))
+                    except Exception as e:
+                        self._logger.error(f"Enclosure Thermostat Encountered an Issue: {e}")
 
-                    if (self.RequestCommandProcess == False):
-                        self.RequestCommandProcess = True   
-                        try:
-                            if self.serialconnected:
-                                self._logger.info("Setting Fan Speed..")
-                                command = "<M3>"
-                                self.arduino.write(command.encode('utf-8'))
-                                time.sleep(0.1)
-                                response = self.arduino.readline().decode().strip()
-                                if response == "200":
-                                    self._logger.info("Mode changed: " + command)
-                                    self.arduino.flush()
-                                    command = "<P" + valuesetting + ">"
-                                    self.arduino.write(command.encode('utf-8'))
-                                    time.sleep(0.1)
-                                    response = self.arduino.readline().decode().strip()
-                                    if response == "200":
-                                        self._logger.info("Fan Speed changed: " + command)
-                                        self.RequestCommandProcess = False
-                            self.RequestCommandProcess = False  
-                            self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="PWM Mode Enabled!", msg=f"Fan set to: {valuesetting}%", alertype="success"))
-                            return
-                        except Exception as err:
-                            self.RequestCommandProcess = False
-                            self._logger.error(f"Enclosure Thermostat Encountered an Issue: 2: {err}")
-                            self.RequestCommandProcess = False
-                            return
-        return
     def get_enclosure_temp(self):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True
             #Get Temp
             try:
-                if self.serialconnected:
-                    command = "<SInternalTemp>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    self.temp = response
-                    self.arduino.flush()
-                    self._logger.info("Enclosure Temp: " + self.temp)
+                response = self.sendcommand("<SInternalTemp>")
+                if response != "error":
+                    self._logger.info("Enclosure Temp: " + response)
                     self._plugin_manager.send_plugin_message(self._identifier,
-                                                             dict(enclosureTemp=str(self.temp) + '\u00b0F'))
-            except:
-                self._logger.error("Enclosure Thermostat Not Connected.. Retrying Connection")
-                self.serialconnected = False
-                self.connect_serial_thermo()
-            #Get Mode
-            try:
-                if self.serialconnected:
-                    command = "<SMode>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    self.mode = response
-                    self.arduino.flush()
-                    self._logger.info("Enclosure Mode: " + self.mode)
-                    self._plugin_manager.send_plugin_message(self._identifier,
-                                                             dict(enclosureMode=str(self.mode)))
-            except:
-                self._logger.error("Enclosure Thermostat Not Connected.. Retrying Connection")
-                self.serialconnected = False
-                self.connect_serial_thermo()
-            #Get Status
-            try:
-                if self.serialconnected:
-                    command = "<SStatus>"
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    self.status = response
-                    self.arduino.flush()   
-                    self._logger.info("Enclosure Status: " +self.status)
-                    self._plugin_manager.send_plugin_message(self._identifier,
-                                                             dict(enclosureStatus=str(self.status)))
-            except:
-                self._logger.error("Enclosure Thermostat Not Connected.. Retrying Connection")
-                self.serialconnected = False
-                self.connect_serial_thermo()
-            #Get TargetTemp
-            try:
-                if self.serialconnected:
-                    if (self.mode == "FILA"):
-                        command = "<SFilamentTemp>"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        self.TargetTemp = response
-                        self.arduino.flush()   
-                        self._logger.info("Target Temp: " + self.TargetTemp)
-                        self._plugin_manager.send_plugin_message(self._identifier,
-                                                                 dict(enclosuretargettemp=str(self.TargetTemp)))
-                    elif (self.mode == "TEMP"):
-                        command = "<SManualTargetTemp>"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        self.TargetTemp = response
-                        self.arduino.flush()   
-                        self._logger.info("Target Temp: " + self.TargetTemp)
-                        self._plugin_manager.send_plugin_message(self._identifier,
-                                                                 dict(enclosuretargettemp=str(self.TargetTemp)))
-                    elif (self.mode == "COOL"):
-                        command = "<SManualTargetTemp>"
-                        self.arduino.write(command.encode('utf-8'))
-                        time.sleep(0.1)
-                        response = self.arduino.readline().decode().strip()
-                        self.TargetTemp = response
-                        self.arduino.flush()   
-                        self._logger.info("Target Temp: " + self.TargetTemp)
-                        self._plugin_manager.send_plugin_message(self._identifier,
-                                                                 dict(enclosuretargettemp=str(self.TargetTemp)))
-                    else:
-                        self._logger.info("Target Temp: None")
-                        self._plugin_manager.send_plugin_message(self._identifier,
-                                                                 dict(enclosuretargettemp="None"))
+                                                             dict(enclosureTemp=str(response) + '\u00b0F'))
 
-            except:
-                self._logger.error("Enclosure Thermostat Not Connected.. Retrying Connection")
+                response = self.sendcommand("<SMode>")
+                if response != "error":
+                    self._logger.info("Enclosure Mode: " + response)
+                    self._plugin_manager.send_plugin_message(self._identifier,
+                                                             dict(enclosureMode=str(response)))
+                
+                response = self.sendcommand("<SStatus>")
+                if response != "error":
+                    self._logger.info("Enclosure Status: " + response)
+                    self._plugin_manager.send_plugin_message(self._identifier,
+                                                             dict(enclosureStatus=str(response)))
+
+                if (self.mode == "FILA"):
+                    response = self.sendcommand("<SFilamentTemp>")
+                    self.TargetTemp = response
+                    self._logger.info("Target Temp: " + self.TargetTemp)
+                    self._plugin_manager.send_plugin_message(self._identifier,
+                                                                dict(enclosuretargettemp=str(self.TargetTemp)))
+                elif (self.mode == "TEMP"):
+                    response = self.sendcommand("<SManualTargetTemp>")
+                    self.TargetTemp = response
+                    self._logger.info("Target Temp: " + self.TargetTemp)
+                    self._plugin_manager.send_plugin_message(self._identifier,
+                                                                dict(enclosuretargettemp=str(self.TargetTemp)))
+                elif (self.mode == "COOL"):
+                    response = self.sendcommand("<SManualTargetTemp>")
+                    self.TargetTemp = response
+                    self._logger.info("Target Temp: " + self.TargetTemp)
+                    self._plugin_manager.send_plugin_message(self._identifier,
+                                                                dict(enclosuretargettemp=str(self.TargetTemp)))
+                else:
+                    self._logger.info("Target Temp: None")
+                    self._plugin_manager.send_plugin_message(self._identifier,
+                                                                dict(enclosuretargettemp="None"))                    
+
+            except Exception as e:
+                self._logger.error(f"Enclosure Thermostat Not Connected.. Retrying Connection Error: {e}")
                 self.serialconnected = False
                 self.connect_serial_thermo()
-            self.RequestCommandProcess = False
-                                                 
-    def get_enclosure_mode(self):
-        self._logger.info("Getting Enclosure Mode..")
-        self._plugin_manager.send_plugin_message(self._identifier,
-                                                 dict(enclosureMode='Enclosure Mode: ' + str(self.mode)))
-    def get_enclosure_target(self):
-        self._logger.info("Getting Enclosure Target..")
-        self._plugin_manager.send_plugin_message(self._identifier,
-                                                dict(enclosureMode='Enclosure Target: ' + str(self.target)))
                                                 
     ##~~ Softwareupdate hook
 
