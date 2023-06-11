@@ -46,7 +46,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     response = self.arduino.readline().decode().strip()
                     self.arduino.flush()
                     self._logger.info(self.temp)
-                    if response != "500" or response != "":
+                    if response != "500" or response != "" or response is not None:
                         self._logger.info(f"Command Successfull: {command}")
                         self.RequestCommandProcess = False
                         return response
@@ -312,28 +312,28 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def get_enclosure_temp(self):
             #Get Temp
             try:
-                self._logger.info("ThermoDebug: 1")
+
                 response = self.sendcommand("<SInternalTemp>")
                 if response != "error" or response is not None:
                     self.temp = response
                     self._logger.info("Enclosure Temp: " + self.temp)
                     self._plugin_manager.send_plugin_message(self._identifier,
                                                              dict(enclosureTemp=str(self.temp) + '\u00b0F'))
-                self._logger.info("ThermoDebug: 2")
+
                 response = self.sendcommand("<SMode>")
                 if response != "error" or response is not None:
                     self.mode = response
                     self._logger.info("Enclosure Mode: " + self.mode)
                     self._plugin_manager.send_plugin_message(self._identifier,
                                                              dict(enclosureMode=str(self.mode)))
-                self._logger.info("ThermoDebug: 3")                
+                                   
                 response = self.sendcommand("<SStatus>")
                 if response != "error" or response is not None:
                     self.status = response
                     self._logger.info("Enclosure Status: " + self.status)
                     self._plugin_manager.send_plugin_message(self._identifier,
                                                              dict(enclosureStatus=str(self.status)))
-                self._logger.info("ThermoDebug: 4")
+
                 if (self.mode == "FILA"):
                     response = self.sendcommand("<SFilamentTemp>")
                     if response != "error" or response is not None:
