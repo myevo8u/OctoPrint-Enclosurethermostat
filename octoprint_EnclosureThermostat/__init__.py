@@ -361,8 +361,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                                                 dict(enclosuretargettemp="None"))                    
 
             except Exception as e:
-                self._logger.error(f"Enclosure Thermostat Not Connected.. Retrying Connection Error: {e}")
-                self.connect_serial_thermo()
+                self._logger.error(f"Error get current state: {e}")
                                                 
     ##~~ Softwareupdate hook
 
