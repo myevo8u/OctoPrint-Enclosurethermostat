@@ -70,37 +70,43 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def SendCommandsThermo(self, command):
         self.command_lock.acquire()  # Acquire the lock
 
-        if self.RequestCommandProcess == False:
-            self.RequestCommandProcess = True
-            try:
-                if self.serialconnected:
-                    self._logger.debug(f"Sending Command: {command}")
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = str(self.arduino.readline().decode('utf-8').strip())
-                    self.arduino.flush()
-                    self._logger.debug(f"Sent command: {command}, Response: {response}")
-                    if response != "500" and response != "" and response is not None:
-                        self._logger.info(f"Command Successful: {command}")
-                        self.RequestCommandProcess = False
-                        send_command_response = response
+        def send_command():
+            if self.RequestCommandProcess == False:
+                self.RequestCommandProcess = True
+                try:
+                    if self.serialconnected:
+                        self._logger.debug(f"Sending Command: {command}")
+                        self.arduino.write(command.encode('utf-8'))
+                        time.sleep(0.1)
+                        response = str(self.arduino.readline().decode('utf-8').strip())
+                        self.arduino.flush()
+                        self._logger.debug(f"Sent command: {command}, Response: {response}")
+                        if response != "500" and response != "" and response is not None:
+                            self._logger.info(f"Command Successful: {command}")
+                            self.RequestCommandProcess = False
+                            send_command.response = response
+                        else:
+                            self._logger.error(f"Command Failed: {command}")
+                            self.RequestCommandProcess = False
+                            send_command.response = "error"
                     else:
-                        self._logger.error(f"Command Failed: {command}")
                         self.RequestCommandProcess = False
-                        send_command_response = "error"
-                else:
+                        send_command.response = "error"
+                except Exception as e:
+                    self._logger.error(f"Enclosure Thermostat Encountered an Issue Sending Command {command}: {e}")
                     self.RequestCommandProcess = False
-                    send_command_response = "error"
-            except Exception as e:
-                self._logger.error(f"Enclosure Thermostat Encountered an Issue Sending Command {command}: {e}")
-                self.RequestCommandProcess = False
-                send_command_response = "error"
-        else:
-            send_command_response = "error"
+                    send_command.response = "error"
+            else:
+                send_command.response = "error"
+
+        send_command.response = None
+        thread = threading.Thread(target=send_command)
+        thread.start()
+        thread.join()
 
         self.command_lock.release()  # Release the lock
 
-        return send_command_response
+        return send_command.response
 
     def mythermostatofftimer(self):
             try:
