@@ -84,11 +84,14 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                         self._logger.error(f"Command Failed: {command}")
                         self.RequestCommandProcess = False
                         return "error"
+                self.RequestCommandProcess = False
                 return "error"
             except Exception as e:
                 self._logger.error(f"Enclosure Thermostat Encountered an Issue Sending Command {command}: {e}")
                 self.RequestCommandProcess = False
                 return "error"
+        self.RequestCommandProcess = False
+        return "error"
     
     def mythermostatofftimer(self):
             try:
@@ -356,7 +359,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                                                 dict(enclosuretargettemp="None"))                    
 
             except Exception as e:
-                self._logger.error(f"Error get current state: {e}")
+                self._logger.error(f"Error getting current state: {e}")
                                                 
     ##~~ Softwareupdate hook
 
