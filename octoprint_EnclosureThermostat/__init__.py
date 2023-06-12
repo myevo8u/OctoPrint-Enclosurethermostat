@@ -4,6 +4,7 @@ import sys
 import os
 import serial as s
 import time
+import threading
 from flask import jsonify, request, make_response, Response
 from octoprint.events import Events
 
@@ -29,6 +30,7 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
         self.serialconnected = False
         self.arduino = s.Serial()  #Define Serial
         self.RequestCommandProcess = False
+        self.command_lock = threading.Lock()  # Initialize the lock
     def checkthermobool(self):
         if self.ThermostatTimeoutBool:
             return True
@@ -66,7 +68,9 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             self._logger.error("Enclosure Thermostat Connection Failed: %s" % (e))
 
     def SendCommandsThermo(self, command):
-        if (self.RequestCommandProcess == False):
+        self.command_lock.acquire()  # Acquire the lock
+
+        if self.RequestCommandProcess == False:
             self.RequestCommandProcess = True
             try:
                 if self.serialconnected:
@@ -77,22 +81,27 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                     self.arduino.flush()
                     self._logger.debug(f"Sent command: {command}, Response: {response}")
                     if response != "500" and response != "" and response is not None:
-                        self._logger.info(f"Command Successfull: {command}")
+                        self._logger.info(f"Command Successful: {command}")
                         self.RequestCommandProcess = False
-                        return response
-                    else: 
+                        send_command_response = response
+                    else:
                         self._logger.error(f"Command Failed: {command}")
                         self.RequestCommandProcess = False
-                        return "error"
-                self.RequestCommandProcess = False
-                return "error"
+                        send_command_response = "error"
+                else:
+                    self.RequestCommandProcess = False
+                    send_command_response = "error"
             except Exception as e:
                 self._logger.error(f"Enclosure Thermostat Encountered an Issue Sending Command {command}: {e}")
                 self.RequestCommandProcess = False
-                return "error"
-        self.RequestCommandProcess = False
-        return "error"
-    
+                send_command_response = "error"
+        else:
+            send_command_response = "error"
+
+        self.command_lock.release()  # Release the lock
+
+        return send_command_response
+
     def mythermostatofftimer(self):
             try:
                 if self.ThermostatTimeoutBool:
