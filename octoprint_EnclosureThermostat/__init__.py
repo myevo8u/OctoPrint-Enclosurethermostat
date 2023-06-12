@@ -34,31 +34,6 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             return True
         else:
             return False
-        
-    def SendCommandsThermo(self, command):
-        if (self.RequestCommandProcess == False):
-            self.RequestCommandProcess = True
-            try:
-                if self.serialconnected:
-                    self._logger.info(f"Sending Command {command}")
-                    self.arduino.write(command.encode('utf-8'))
-                    time.sleep(0.1)
-                    response = self.arduino.readline().decode().strip()
-                    self.arduino.flush()
-                    self._logger.info(f"sendcommand {command} Response: {response}")
-                    if response != "500" and response != "" and response is not None:
-                        self._logger.info(f"Command Successfull: {command}")
-                        self.RequestCommandProcess = False
-                        return response
-                    else: 
-                        self._logger.info(f"Command Failed: {command}")
-                        self.RequestCommandProcess = False
-                        return "error"
-                return "error"
-            except Exception as e:
-                self._logger.error(f"Enclosure Thermostat Encountered an Issue Sending Command {command}: {e}")
-                self.RequestCommandProcess = False
-                return "error"
 
     def start_Thermostat_Timeout_Timer(self, interval):
         self._ThermostatTimeoutTimer = RepeatedTimer(interval, self.mythermostatofftimer, condition=self.checkthermobool, run_first=False)
@@ -90,6 +65,30 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
             self._plugin_manager.send_plugin_message(self._identifier, dict(type="popup", title="Thermostat Error", msg="Could not Connect to Thermostat", alertype="error"))
             self._logger.error("Enclosure Thermostat Connection Failed: %s" % (e))
 
+    def SendCommandsThermo(self, command):
+        if (self.RequestCommandProcess == False):
+            self.RequestCommandProcess = True
+            try:
+                if self.serialconnected:
+                    self._logger.debug(f"Sending Command: {command}")
+                    self.arduino.write(command.encode('utf-8'))
+                    time.sleep(0.1)
+                    response = str(self.arduino.readline().decode('utf-8').strip())
+                    self.arduino.flush()
+                    self._logger.debug(f"Sent command: {command}, Response: {response}")
+                    if response != "500" and response != "" and response is not None:
+                        self._logger.info(f"Command Successfull: {command}")
+                        self.RequestCommandProcess = False
+                        return response
+                    else: 
+                        self._logger.error(f"Command Failed: {command}")
+                        self.RequestCommandProcess = False
+                        return "error"
+                return "error"
+            except Exception as e:
+                self._logger.error(f"Enclosure Thermostat Encountered an Issue Sending Command {command}: {e}")
+                self.RequestCommandProcess = False
+                return "error"
     
     def mythermostatofftimer(self):
             try:
@@ -312,34 +311,26 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
     def get_enclosure_temp(self):
             #Get Temp
             try:
-
                 response = self.SendCommandsThermo("<SInternalTemp>")
-                self._logger.info(f"Response: {response}")
                 if response != "error" and response is not None:
                     self.temp = response
                     self._logger.info("Enclosure Temp: " + self.temp)
                     self._plugin_manager.send_plugin_message(self._identifier,
                                                              dict(enclosureTemp=str(self.temp) + '\u00b0F'))
-
                 response = self.SendCommandsThermo("<SMode>")
-                self._logger.info(f"Response: {response}")
                 if response != "error" and response is not None:
                     self.mode = response
                     self._logger.info("Enclosure Mode: " + self.mode)
                     self._plugin_manager.send_plugin_message(self._identifier,
-                                                             dict(enclosureMode=str(self.mode)))
-                                   
+                                                             dict(enclosureMode=str(self.mode)))                   
                 response = self.SendCommandsThermo("<SStatus>")
-                self._logger.info(f"Response: {response}")
                 if response != "error" and response is not None:
                     self.status = response
                     self._logger.info("Enclosure Status: " + self.status)
                     self._plugin_manager.send_plugin_message(self._identifier,
                                                              dict(enclosureStatus=str(self.status)))
-
                 if (self.mode == "FILA"):
                     response = self.SendCommandsThermo("<SFilamentTemp>")
-                    self._logger.info(f"Response: {response}")
                     if response != "error" and response is not None:
                         self.TargetTemp = response
                         self._logger.info("Target Temp: " + self.TargetTemp)
@@ -347,7 +338,6 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                                                     dict(enclosuretargettemp=str(self.TargetTemp)))
                 elif (self.mode == "TEMP"):
                     response = self.SendCommandsThermo("<SManualTargetTemp>")
-                    self._logger.info(f"Response: {response}")
                     if response != "error" and response is not None:
                         self.TargetTemp = response
                         self._logger.info("Target Temp: " + self.TargetTemp)
@@ -355,7 +345,6 @@ class EnclosurethermostatPlugin(octoprint.plugin.StartupPlugin,
                                                                     dict(enclosuretargettemp=str(self.TargetTemp)))
                 elif (self.mode == "COOL"):
                     response = self.SendCommandsThermo("<SManualTargetTemp>")
-                    self._logger.info(f"Response: {response}")
                     if response != "error" and response is not None:
                         self.TargetTemp = response
                         self._logger.info("Target Temp: " + self.TargetTemp)
